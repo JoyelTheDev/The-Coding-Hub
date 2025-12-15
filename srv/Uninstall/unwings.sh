@@ -139,10 +139,10 @@ public_ip_setup() {
     echo -e "\n${VL}${Y}Using: DB=${W}$DB_NAME${Y}, USER=${W}$DB_USER${Y}, PASS=${W}$DB_PASS${N}"
     
     show_progress_bar 6 10 "Creating database and user..."
-    mariadb -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';" > /dev/null 2>&1
-    mariadb -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" > /dev/null 2>&1
-    mariadb -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;" > /dev/null 2>&1
-    mariadb -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
+    mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';" > /dev/null 2>&1
+    mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" > /dev/null 2>&1
+    mysql -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;" > /dev/null 2>&1
+    mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
     
     echo -e "\n\n${VL}${G}✓ MariaDB configured successfully!${N}"
     
