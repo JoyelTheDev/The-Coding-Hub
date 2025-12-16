@@ -174,7 +174,7 @@ EOF
         echo -e "${M}════════════════════════════════════════════════${N}\n"
         
         echo -e "${C}📡 Fetching script from GitHub...${N}"
-        bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/vm/vm.sh)
+        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/vm.sh)
         
         echo -e "\n${M}════════════════════════════════════════════════${N}"
         read -p "↩ Press Enter..."
