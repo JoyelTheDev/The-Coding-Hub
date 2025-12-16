@@ -55,17 +55,9 @@ Script khud bolega: *“Relax, main sambhal lunga.”*
 This script makes **system-level changes**.
 Use it on a **fresh server** or **test environment** first.
 
-> Power is beautiful — but only in careful hands.
+> Power by nobita
 
----
 
-## 🌐 Author
-
-**The Coding Hub**
-Crafted by **nobita**
-🌍 [https://ptero.nobitapro.online](https://ptero.nobitapro.online)
-
----
 
 ## ⭐ Support the Project
 
@@ -75,14 +67,4 @@ If this helped you:
 * 🛠️ Share feedback
 * 🧩 Suggest features
 
----
 
-If you want, next we can:
-
-* add **badges (shields.io)**
-* make it **pro DevOps-style**
-* add **feature table + roadmap**
-* or turn this into a **landing-page README**
-
-Just say the word.
-System ready. Awaiting next command. 💻✨
