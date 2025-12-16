@@ -54,7 +54,7 @@ read -p "Select → " p
 
 case $p in
  1) curl -sSL https://get.featherpanel.com/beta.sh | bash ;;
- 2) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/Uninstall/unPterodactyl.sh) ;;
+ 2) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/Uninstall/unwings.sh) ;;
  3) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/panel/Jexactyl.sh) ;;
  4) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/Uninstall/unJexactyl.sh) ;;
  5) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/Uninstall/undash-3.sh) ;;
@@ -136,7 +136,7 @@ read -p "Select → " c
 case $c in
  1) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/vm.sh) ;;
  2) panel_menu ;;
- 3) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/Uninstall/unwings.sh) ;;
+ 3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/Uninstall/unwings.sh) ;;
  4) tools_menu ;;
  5) theme_menu ;;
  6) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/menu/System1.sh) ;;
