@@ -150,8 +150,8 @@ install_browsers() {
         apt install -y brave-browser
     fi
 
-     sed -i 's|^Exec=.*google-chrome.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' ~/Desktop/google-chrome.desktop 2>/dev/null
-     sed -i 's|^Exec=.*brave-browser.*|Exec=/usr/bin/brave-browser-stable --no-sandbox --disable-dev-shm-usage|g' ~/Desktop/brave-browser*.desktop 2>/dev/null
+     sed -i 's|^Exec=.*google-chrome-stable.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/google-chrome.desktop
+     sed -i 's|^Exec=.*brave-browser.*|Exec=/usr/bin/brave-browser-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/brave-browser.desktop
      sed -i 's|^Exec=.*chromium.*|Exec=/usr/bin/chromium --no-sandbox --disable-dev-shm-usage|g' ~/Desktop/chromium*.desktop 2>/dev/null
      mkdir -p ~/Desktop
 # Google Chrome
