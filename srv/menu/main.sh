@@ -88,7 +88,7 @@ case $t in
  1) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/root.sh) ;;
  2) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/Tailscale.sh) ;;
  3) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/tools/cf.sh) ;;
- 4) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/tools/SYSTEM.sh) ;;
+ 4) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/SYSTEM.sh) ;;
  5) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/tools/vps.sh) ;;
  6) bash <(curl -s https://raw.githubusercontent.com/yourlink/portforward.sh) ;;
  7) bash <(curl -s https://raw.githubusercontent.com/yourlink/rdp.sh) ;;
