@@ -5,142 +5,232 @@ R="\e[31m"; G="\e[32m"; Y="\e[33m"
 B="\e[34m"; M="\e[35m"; C="\e[36m"
 W="\e[97m"; N="\e[0m"
 
+# Check root
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${R}Please run as root: sudo bash $0${N}"
+    exit 1
+fi
+
 clear_ui() { clear; }
 
 header() {
-clear_ui
-echo -e "${M}╔══════════════════════════════════════╗${N}"
-echo -e "${M}║${W}     🚀 RDP + noVNC CONTROL PANEL     ${M}║${N}"
-echo -e "${M}╠══════════════════════════════════════╣${N}"
-echo -e "${M}║${C}  XFCE • xRDP • Browser Desktop       ${M}║${N}"
-echo -e "${M}╚══════════════════════════════════════╝${N}"
-echo
+    clear_ui
+    echo -e "${M}╔════════════════════════════════════════════╗${N}"
+    echo -e "${M}║${W}     🚀 RDP + noVNC CONTROL PANEL v2.0     ${M}║${N}"
+    echo -e "${M}╠════════════════════════════════════════════╣${N}"
+    echo -e "${M}║${C}  XFCE • xRDP • TigerVNC • Browser Desktop ${M}║${N}"
+    echo -e "${M}╚════════════════════════════════════════════╝${N}"
+    echo
+}
+
+show_info() {
+    IP=$(curl -s ifconfig.me || hostname -I | awk '{print $1}')
+    echo -e "${C}════════════════════════════════════════════${N}"
+    echo -e "${Y}🔗 Connection Info:${N}"
+    echo -e "${G}RDP   :${W} $IP:3389${N}"
+    echo -e "${G}noVNC :${W} http://$IP:6080/vnc.html${N}"
+    echo -e "${G}VNC   :${W} $IP:5901${N}"
+    echo -e "${C}════════════════════════════════════════════${N}"
+    echo
 }
 
 install_all() {
-echo -e "${Y}Installing Desktop + RDP + noVNC...${N}"
-apt update && apt upgrade -y
-apt install xfce4 xfce4-goodies xrdp tigervnc-standalone-server tigervnc-common novnc websockify -y
-systemctl enable xrdp && systemctl start xrdp
-adduser xrdp ssl-cert
-echo xfce4-session > ~/.xsession
-echo xfce4-session > /etc/skel/.xsession
-vncpasswd
-vncserver -localhost no :1
-
-cat <<EOF >/etc/systemd/system/novnc.service
+    echo -e "${Y}📦 Installing Desktop + RDP + noVNC...${N}"
+    
+    # Update system
+    apt update && apt upgrade -y
+    
+    # Install desktop and VNC
+    apt install -y xfce4 xfce4-goodies xfce4-terminal \
+        xrdp tigervnc-standalone-server tigervnc-common \
+        novnc websockify firefox-esr
+    
+    # Configure xRDP
+    systemctl enable xrdp
+    systemctl start xrdp
+    adduser xrdp ssl-cert
+    
+    # Set XFCE as default session
+    echo "xfce4-session" > ~/.xsession
+    echo "xfce4-session" > /etc/skel/.xsession
+    chmod +x ~/.xsession
+    
+    # Configure VNC
+    mkdir -p ~/.vnc
+    echo "password123" | vncpasswd -f > ~/.vnc/passwd
+    chmod 600 ~/.vnc/passwd
+    
+    # Create VNC config
+    cat > ~/.vnc/config <<EOF
+geometry=1280x720
+depth=24
+localhost
+alwaysshared
+EOF
+    
+    # Start VNC server
+    vncserver -localhost no :1
+    
+    # Create noVNC service
+    cat > /etc/systemd/system/novnc.service <<EOF
 [Unit]
 Description=noVNC Server
 After=network.target
 
 [Service]
 Type=simple
+User=root
 ExecStart=/usr/bin/websockify --web=/usr/share/novnc/ 6080 localhost:5901
-Restart=always
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOF
+    
+    systemctl daemon-reload
+    systemctl enable novnc
+    systemctl start novnc
+    
+    # Configure firewall
+    ufw allow 3389/tcp
+    ufw allow 6080/tcp
+    ufw allow 5901/tcp
+    ufw reload 2>/dev/null || true
+    
+    # Install additional browsers
+    install_browsers
+    
+    echo -e "${G}✅ Installation Complete!${N}"
+    show_info
+    read -p "Press Enter to continue..."
+}
 
-systemctl daemon-reload
-systemctl enable novnc
-systemctl start novnc
-
-ufw allow 3389
-ufw allow 6080
-ufw allow 5901
-ufw reload || true
-
-apt update -y
-
-# Firefox ESR
-echo "🦊 Installing Firefox ESR..."
-apt install -y firefox-esr || apt install -y firefox
-
-# Google Chrome
-echo "🌍 Installing Google Chrome..."
-apt install -y wget gnupg ca-certificates
-wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
-> /etc/apt/sources.list.d/google-chrome.list
-apt update -y
-apt install -y google-chrome-stable
-
-# Chromium
-echo "🧪 Installing Chromium..."
-apt install -y chromium || apt install -y chromium-browser
-
-# Brave
-echo "🦁 Installing Brave..."
-curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
-https://brave-browser-apt-release.s3.brave.com/ stable main" \
-> /etc/apt/sources.list.d/brave-browser-release.list
-apt update -y
-apt install -y brave-browser
-sed -i 's|^Exec=.*google-chrome-stable.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/google-chrome.desktop
-sed -i 's|^Exec=.*brave-browser.*|Exec=/usr/bin/brave-browser-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/brave-browser.desktop
-
-echo "✅ DONE!"
-echo "Installed: Chrome • Firefox • Chromium • Brave"
-echo "🖥️ RDP me login karke use karo."
-
-IP=$(curl -s ifconfig.me)
-echo -e "${G}DONE!${N}"
-echo -e "RDP  : ${W}$IP:3389${N}"
-echo -e "noVNC: ${W}http://$IP:6080${N}"
-read -p "Press Enter..."
+install_browsers() {
+    echo -e "${Y}🌐 Installing Web Browsers...${N}"
+    
+    # Chrome
+    echo "Installing Google Chrome..."
+    wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    apt install -y /tmp/chrome.deb 2>/dev/null || echo "Chrome installation skipped"
+    
+    # Chromium
+    apt install -y chromium chromium-l10n
+    
+    # Brave (optional)
+    read -p "Install Brave Browser? (y/n): " install_brave
+    if [[ $install_brave =~ ^[Yy]$ ]]; then
+        apt install -y curl
+        curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+            https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
+            https://brave-browser-apt-release.s3.brave.com/ stable main" \
+            > /etc/apt/sources.list.d/brave-browser-release.list
+        apt update
+        apt install -y brave-browser
+    fi
+    
+    echo -e "${G}✅ Browsers installed${N}"
 }
 
 start_services() {
-systemctl start xrdp novnc
-vncserver -localhost no :1 || true
-echo -e "${G}Services Started${N}"
-sleep 1
+    echo -e "${Y}▶ Starting Services...${N}"
+    systemctl start xrdp
+    vncserver -localhost no :1
+    systemctl start novnc
+    echo -e "${G}✅ Services Started${N}"
+    sleep 1
 }
 
 stop_services() {
-systemctl stop xrdp novnc
-vncserver -kill :1 || true
-echo -e "${R}Services Stopped${N}"
-sleep 1
+    echo -e "${Y}⏹ Stopping Services...${N}"
+    systemctl stop xrdp novnc
+    vncserver -kill :1 2>/dev/null || true
+    echo -e "${G}✅ Services Stopped${N}"
+    sleep 1
+}
+
+restart_services() {
+    stop_services
+    start_services
 }
 
 status_services() {
-systemctl status xrdp --no-pager
-systemctl status novnc --no-pager
-read -p "Press Enter..."
+    echo -e "${C}════════════════════════════════════════════${N}"
+    echo -e "${Y}🔍 Service Status:${N}"
+    echo -e "${C}════════════════════════════════════════════${N}"
+    systemctl is-active xrdp && echo -e "xRDP    : ${G}ACTIVE${N}" || echo -e "xRDP    : ${R}INACTIVE${N}"
+    systemctl is-active novnc && echo -e "noVNC   : ${G}ACTIVE${N}" || echo -e "noVNC   : ${R}INACTIVE${N}"
+    netstat -tulpn | grep -E ":3389|:6080|:5901" && echo -e "Ports   : ${G}LISTENING${N}" || echo -e "Ports   : ${R}NOT LISTENING${N}"
+    echo -e "${C}════════════════════════════════════════════${N}"
+    read -p "Press Enter to continue..."
+}
+
+change_vnc_password() {
+    echo -e "${Y}🔐 Change VNC Password${N}"
+    vncpasswd
+    echo -e "${G}✅ Password changed. Restart VNC to apply.${N}"
+    read -p "Press Enter..."
 }
 
 uninstall_all() {
-echo -e "${R}Removing EVERYTHING...${N}"
-systemctl stop xrdp novnc || true
-apt purge xfce4* xrdp tigervnc* novnc websockify -y
-rm -rf ~/.vnc /etc/systemd/system/novnc.service
-systemctl daemon-reload
-echo -e "${G}Clean Uninstall Done${N}"
-read -p "Press Enter..."
+    echo -e "${R}⚠️  WARNING: This will remove ALL RDP/VNC components${N}"
+    read -p "Are you sure? (type 'YES' to confirm): " confirm
+    if [ "$confirm" != "YES" ]; then
+        echo -e "${Y}Uninstall cancelled${N}"
+        return
+    fi
+    
+    echo -e "${R}🗑️  Removing everything...${N}"
+    stop_services
+    
+    # Remove packages
+    apt purge -y xfce4* xrdp tigervnc* novnc websockify \
+        firefox-esr google-chrome-stable chromium brave-browser
+    
+    # Remove configs
+    rm -rf ~/.vnc /etc/systemd/system/novnc.service
+    rm -f ~/.xsession /etc/skel/.xsession
+    
+    # Clean up
+    apt autoremove -y
+    apt clean
+    
+    systemctl daemon-reload
+    
+    echo -e "${G}✅ Uninstall complete${N}"
+    read -p "Press Enter..."
 }
 
+# Main menu
 while true; do
-header
-echo -e "${C}1) Install RDP + noVNC${N}"
-echo -e "${C}2) Start Services${N}"
-echo -e "${C}3) Stop Services${N}"
-echo -e "${C}4) Status${N}"
-echo -e "${C}5) Uninstall All${N}"
-echo -e "${R}0) Exit${N}"
-echo
-read -p "Select option: " opt
-
-case $opt in
-1) install_all ;;
-2) start_services ;;
-3) stop_services ;;
-4) status_services ;;
-5) uninstall_all ;;
-0) exit ;;
-*) echo -e "${R}Invalid option${N}"; sleep 1 ;;
-esac
+    header
+    show_info
+    
+    echo -e "${C}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
+    echo -e "${G}1) ${W}Install RDP + noVNC + Browsers${N}"
+    echo -e "${G}2) ${W}Start Services${N}"
+    echo -e "${G}3) ${W}Stop Services${N}"
+    echo -e "${G}4) ${W}Restart Services${N}"
+    echo -e "${G}5) ${W}Check Status${N}"
+    echo -e "${G}6) ${W}Change VNC Password${N}"
+    echo -e "${G}7) ${W}Install Browsers Only${N}"
+    echo -e "${R}8) ${W}Uninstall Everything${N}"
+    echo -e "${R}0) ${W}Exit${N}"
+    echo -e "${C}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${N}"
+    
+    read -p "Select option: " opt
+    
+    case $opt in
+        1) install_all ;;
+        2) start_services ;;
+        3) stop_services ;;
+        4) restart_services ;;
+        5) status_services ;;
+        6) change_vnc_password ;;
+        7) install_browsers ;;
+        8) uninstall_all ;;
+        0) echo -e "${G}Goodbye!${N}"; exit 0 ;;
+        *) echo -e "${R}Invalid option${N}"; sleep 1 ;;
+    esac
 done
