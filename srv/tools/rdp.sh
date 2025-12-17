@@ -57,7 +57,7 @@ install_all() {
     
     # Configure VNC
     mkdir -p ~/.vnc
-    echo "password123" | vncpasswd -f > ~/.vnc/passwd
+    echo "root" | vncpasswd -f > ~/.vnc/passwd
     chmod 600 ~/.vnc/passwd
     
     # Create VNC config
@@ -113,7 +113,8 @@ install_browsers() {
     echo "Installing Google Chrome..."
     wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     apt install -y /tmp/chrome.deb 2>/dev/null || echo "Chrome installation skipped"
-    
+    sed -i 's|^Exec=.*google-chrome-stable.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/google-chrome.desktop
+
     # Chromium
     apt install -y chromium chromium-l10n
     
