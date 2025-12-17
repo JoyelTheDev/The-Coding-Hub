@@ -51,6 +51,41 @@ ufw allow 6080
 ufw allow 5901
 ufw reload || true
 
+apt update -y
+
+# Firefox ESR
+echo "🦊 Installing Firefox ESR..."
+apt install -y firefox-esr || apt install -y firefox
+
+# Google Chrome
+echo "🌍 Installing Google Chrome..."
+apt install -y wget gnupg ca-certificates
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+> /etc/apt/sources.list.d/google-chrome.list
+apt update -y
+apt install -y google-chrome-stable
+
+# Chromium
+echo "🧪 Installing Chromium..."
+apt install -y chromium || apt install -y chromium-browser
+
+# Brave
+echo "🦁 Installing Brave..."
+curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
+https://brave-browser-apt-release.s3.brave.com/ stable main" \
+> /etc/apt/sources.list.d/brave-browser-release.list
+apt update -y
+apt install -y brave-browser
+sed -i 's|^Exec=.*google-chrome-stable.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/google-chrome.desktop
+sed -i 's|^Exec=.*brave-browser.*|Exec=/usr/bin/brave-browser-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/brave-browser.desktop
+
+echo "✅ DONE!"
+echo "Installed: Chrome • Firefox • Chromium • Brave"
+echo "🖥️ RDP me login karke use karo."
+
 IP=$(curl -s ifconfig.me)
 echo -e "${G}DONE!${N}"
 echo -e "RDP  : ${W}$IP:3389${N}"
