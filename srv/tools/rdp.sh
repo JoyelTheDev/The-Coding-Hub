@@ -44,7 +44,8 @@ install_all() {
     systemctl enable xrdp
     systemctl start xrdp
     adduser xrdp ssl-cert
-
+    echo "startxfce4" > ~/.xsession
+    sudo chown $(whoami):$(whoami) ~/.xsession
     echo "🧠 Setting default session..."
     echo xfce4-session > /etc/skel/.xsession
     echo xfce4-session > ~/.xsession
