@@ -43,7 +43,7 @@ blueprint1() {
 blueprint2() {
   header
   echo -e "${Y}▶ Running BLUEPRINT 2 (Fresh rebuild)...${N}"
-  bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/thame/blueprint.sh)
+  bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/thame/blueprint-2.sh)
   pause
 }
 
