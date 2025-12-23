@@ -41,11 +41,6 @@ BOX_CORNER_TL="┌"
 BOX_CORNER_TR="┐"
 BOX_CORNER_BL="└"
 BOX_CORNER_BR="┘"
-BOX_T="┬"
-BOX_T_INV="┴"
-BOX_CROSS="┼"
-BOX_ARROW_R="▶"
-BOX_ARROW_L="◀"
 
 # AI Emojis
 AI_ICON="🤖"
@@ -148,676 +143,488 @@ loading() {
     echo -e "${FG_GREEN} ✓${RESET}"
 }
 
-# ===== Multi-OS Linux Detection =====
+# ===== Multi-OS Linux Detection - SIMPLIFIED =====
 detect_linux_distribution() {
-    print_status "OS" "Detecting Linux distribution and version..."
+    print_status "OS" "Detecting Linux distribution..."
     
     local distro_name="Unknown"
     local distro_version="Unknown"
     local distro_id=""
-    local distro_like=""
     local package_manager=""
-    local distro_logo="🐧"
+    local distro_logo="${OS_ICON}"
     
-    # Comprehensive OS detection
+    # Simple OS detection
     if [ -f /etc/os-release ]; then
-        . /etc/os-release
+        source /etc/os-release
         distro_name="$NAME"
         distro_version="$VERSION_ID"
         distro_id="$ID"
-        distro_like="$ID_LIKE"
         
-        # Set appropriate logo
-        case $ID in
-            ubuntu|pop) distro_logo="" ;;
-            debian) distro_logo="" ;;
-            fedora) distro_logo="" ;;
-            centos|rhel) distro_logo="" ;;
-            arch|manjaro) distro_logo="" ;;
-            alpine) distro_logo="" ;;
-            opensuse|suse) distro_logo="" ;;
-            kali) distro_logo="" ;;
-            raspbian) distro_logo="" ;;
-            *) distro_logo="🐧" ;;
-        esac
-        
-        # Detect package manager
+        # Set package manager based on OS
         case $ID in
             ubuntu|debian|pop|raspbian|kali)
                 package_manager="apt"
+                distro_logo="🟠"
                 ;;
             fedora|rhel|centos)
                 package_manager="dnf"
+                distro_logo="🔴"
                 ;;
             arch|manjaro)
                 package_manager="pacman"
+                distro_logo="🔵"
                 ;;
             alpine)
                 package_manager="apk"
+                distro_logo="🏔️"
                 ;;
             opensuse|suse)
                 package_manager="zypper"
+                distro_logo="🟢"
+                ;;
+            *)
+                package_manager="unknown"
                 ;;
         esac
-    elif [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
-        distro_name="$DISTRIB_ID"
-        distro_version="$DISTRIB_RELEASE"
     elif [ -f /etc/debian_version ]; then
         distro_name="Debian"
         distro_version=$(cat /etc/debian_version)
         package_manager="apt"
-    elif [ -f /etc/fedora-release ]; then
-        distro_name="Fedora"
-        distro_version=$(grep -o '[0-9]*' /etc/fedora-release)
-        package_manager="dnf"
+        distro_logo="🟠"
     elif [ -f /etc/redhat-release ]; then
         distro_name="Red Hat"
         distro_version=$(grep -o '[0-9]*' /etc/redhat-release)
         package_manager="dnf"
+        distro_logo="🔴"
     elif [ -f /etc/arch-release ]; then
         distro_name="Arch Linux"
         distro_version="Rolling"
         package_manager="pacman"
+        distro_logo="🔵"
     elif [ -f /etc/alpine-release ]; then
         distro_name="Alpine Linux"
         distro_version=$(cat /etc/alpine-release)
         package_manager="apk"
+        distro_logo="🏔️"
     fi
     
-    # Detect kernel version
+    # Detect kernel
     local kernel_version=$(uname -r)
     local architecture=$(uname -m)
     
-    # Detect init system
-    local init_system="Unknown"
-    if command -v systemctl &>/dev/null; then
-        init_system="systemd"
-    elif [ -f /sbin/init ]; then
-        init_system=$(readlink /sbin/init | xargs basename)
-    fi
+    # Detect system resources
+    local total_memory=$(free -m | awk '/^Mem:/{print $2}')
+    local cpu_cores=$(nproc)
     
-    # Detect container runtime
-    local container_runtime=""
-    if command -v docker &>/dev/null; then
-        container_runtime="Docker $(docker version --format '{{.Server.Version}}' 2>/dev/null)"
-    elif command -v podman &>/dev/null; then
-        container_runtime="Podman $(podman version --format '{{.Version}}' 2>/dev/null)"
-    elif command -v containerd &>/dev/null; then
-        container_runtime="containerd $(containerd --version | awk '{print $3}')"
-    fi
-    
-    # Detect virtualization
-    local virtualization=""
-    if [ -f /sys/hypervisor/uuid ] || [ -d /proc/xen ]; then
-        virtualization="Xen"
-    elif grep -q "VMware" /sys/class/dmi/id/product_name 2>/dev/null; then
-        virtualization="VMware"
-    elif grep -q "VirtualBox" /sys/class/dmi/id/product_name 2>/dev/null; then
-        virtualization="VirtualBox"
-    elif grep -q "KVM" /sys/class/dmi/id/product_name 2>/dev/null; then
-        virtualization="KVM"
-    elif grep -q "QEMU" /sys/class/dmi/id/product_name 2>/dev/null; then
-        virtualization="QEMU"
-    elif systemd-detect-virt --container &>/dev/null; then
-        virtualization="Container ($(systemd-detect-virt --container))"
-    elif systemd-detect-virt --vm &>/dev/null; then
-        virtualization="VM ($(systemd-detect-virt --vm))"
-    fi
-    
-    # Detect desktop environment
-    local desktop_env=""
-    if [ -n "$XDG_CURRENT_DESKTOP" ]; then
-        desktop_env="$XDG_CURRENT_DESKTOP"
-    elif [ -n "$DESKTOP_SESSION" ]; then
-        desktop_env="$DESKTOP_SESSION"
-    fi
-    
-    # Return as associative array
-    declare -A os_info
-    os_info=(
-        ["name"]="$distro_name"
-        ["version"]="$distro_version"
-        ["id"]="$distro_id"
-        ["like"]="$distro_like"
-        ["package_manager"]="$package_manager"
-        ["kernel"]="$kernel_version"
-        ["architecture"]="$architecture"
-        ["init"]="$init_system"
-        ["container_runtime"]="$container_runtime"
-        ["virtualization"]="$virtualization"
-        ["desktop"]="$desktop_env"
-        ["logo"]="$distro_logo"
-    )
-    
-    declare -p os_info
+    # Return as simple variables
+    OS_NAME="$distro_name"
+    OS_VERSION="$distro_version"
+    OS_ID="$distro_id"
+    OS_PACKAGE_MANAGER="$package_manager"
+    OS_LOGO="$distro_logo"
+    OS_KERNEL="$kernel_version"
+    OS_ARCH="$architecture"
+    OS_MEMORY="$total_memory"
+    OS_CORES="$cpu_cores"
 }
 
 display_os_info() {
     print_header
-    print_status "OS" "Comprehensive Linux Distribution Analysis"
+    print_status "OS" "Linux Distribution Analysis"
     echo
     
-    # Get OS info
-    eval $(detect_linux_distribution)
+    detect_linux_distribution
     
-    echo -e "${BOLD}${FG_BLUE}${os_info[logo]} ${os_info[name]} ${os_info[version]} - Complete Analysis${RESET}\n"
+    echo -e "${BOLD}${FG_BLUE}${OS_LOGO} ${OS_NAME} ${OS_VERSION}${RESET}\n"
     
     print_box 70 "📊 OS Information" "${FG_BLUE}" \
-        "${BOLD}Distribution:${RESET} ${os_info[name]} ${os_info[version]}\n"\
-        "${BOLD}Distro ID:${RESET} ${os_info[id]}\n"\
-        "${BOLD}Base Family:${RESET} ${os_info[like]}\n"\
-        "${BOLD}Package Manager:${RESET} ${os_info[package_manager]}\n"\
-        "${BOLD}Kernel:${RESET} ${os_info[kernel]}\n"\
-        "${BOLD}Architecture:${RESET} ${os_info[architecture]}\n"\
-        "${BOLD}Init System:${RESET} ${os_info[init]}\n"\
-        "${BOLD}Desktop:${RESET} ${os_info[desktop]}"
-    
-    echo
-    
-    print_box 70 "⚡ System & Virtualization" "${FG_CYAN}" \
-        "${BOLD}Container Runtime:${RESET} ${os_info[container_runtime]:-Not detected}\n"\
-        "${BOLD}Virtualization:${RESET} ${os_info[virtualization]:-Physical/Bare metal}\n"\
-        "${BOLD}Uptime:${RESET} $(uptime -p | sed 's/up //')\n"\
-        "${BOLD}Load Average:${RESET} $(cat /proc/loadavg | awk '{print $1", "$2", "$3}')"
+        "Distribution: ${BOLD}${OS_NAME} ${OS_VERSION}${RESET}\n"\
+        "Distro ID: ${BOLD}${OS_ID}${RESET}\n"\
+        "Package Manager: ${BOLD}${OS_PACKAGE_MANAGER}${RESET}\n"\
+        "Kernel: ${BOLD}${OS_KERNEL}${RESET}\n"\
+        "Architecture: ${BOLD}${OS_ARCH}${RESET}"
     
     echo
     
     # Resource information
-    print_status "DETECT" "Analyzing system resources..."
-    
-    local total_memory=$(free -h | awk '/^Mem:/{print $2}')
-    local used_memory=$(free -h | awk '/^Mem:/{print $3}')
-    local free_memory=$(free -h | awk '/^Mem:/{print $4}')
-    local cpu_cores=$(nproc)
-    local cpu_model=$(grep "model name" /proc/cpuinfo | head -1 | cut -d: -f2 | xargs)
-    local disk_space=$(df -h / | awk 'NR==2 {print $4 " free of " $2}')
-    local swap_total=$(free -h | awk '/^Swap:/{print $2}')
-    local swap_used=$(free -h | awk '/^Swap:/{print $3}')
-    
     print_box 70 "💾 Hardware Resources" "${FG_MAGENTA}" \
-        "${BOLD}CPU:${RESET} ${cpu_cores} cores - ${cpu_model}\n"\
-        "${BOLD}Memory:${RESET} ${used_memory} used / ${total_memory} total (${free_memory} free)\n"\
-        "${BOLD}Swap:${RESET} ${swap_used} used / ${swap_total} total\n"\
-        "${BOLD}Disk (root):${RESET} ${disk_space}"
+        "CPU Cores: ${BOLD}${OS_CORES}${RESET}\n"\
+        "Total Memory: ${BOLD}${OS_MEMORY}MB${RESET}\n"\
+        "Uptime: ${BOLD}$(uptime -p | sed 's/up //')${RESET}"
     
     echo
     
-    # Docker specific detection
-    print_status "DETECT" "Analyzing Docker environment..."
-    
+    # Docker detection
     if command -v docker &>/dev/null; then
-        local docker_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null)
-        local docker_compose_version=$(docker compose version --short 2>/dev/null || echo "Not installed")
+        local docker_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo "Unknown")
         local total_containers=$(docker ps -aq 2>/dev/null | wc -l)
-        local running_containers=$(docker ps -q 2>/dev/null | wc -l)
+        local running_containers=$(docker ps -q 2/dev/null | wc -l)
         local total_images=$(docker images -q 2>/dev/null | wc -l)
-        local docker_root=$(docker info --format '{{.DockerRootDir}}' 2>/dev/null)
-        local storage_driver=$(docker info --format '{{.Driver}}' 2>/dev/null)
         
         print_box 70 "🐳 Docker Environment" "${FG_GREEN}" \
-            "${BOLD}Docker Version:${RESET} $docker_version\n"\
-            "${BOLD}Docker Compose:${RESET} $docker_compose_version\n"\
-            "${BOLD}Containers:${RESET} ${running_containers} running / ${total_containers} total\n"\
-            "${BOLD}Images:${RESET} $total_images\n"\
-            "${BOLD}Storage Driver:${RESET} $storage_driver\n"\
-            "${BOLD}Docker Root:${RESET} $docker_root"
+            "Docker Version: ${BOLD}${docker_version}${RESET}\n"\
+            "Containers: ${BOLD}${running_containers} running / ${total_containers} total${RESET}\n"\
+            "Images: ${BOLD}${total_images}${RESET}"
     else
         print_box 70 "🐳 Docker Status" "${FG_YELLOW}" \
-            "${BOLD}Status:${RESET} Docker not installed\n"\
-            "${BOLD}Recommendation:${RESET} Install Docker for container management"
+            "Status: ${BOLD}Docker not installed${RESET}\n"\
+            "Recommendation: ${BOLD}Install Docker for container management${RESET}"
     fi
     
     echo
     
-    # Auto-suggestions based on OS
-    print_status "AI" "Generating OS-specific recommendations..."
+    # OS-specific recommendations
+    print_status "AI" "OS-specific recommendations..."
     
-    local recommendations=()
-    
-    case ${os_info[id]} in
-        ubuntu|debian|pop)
-            recommendations+=("Use 'apt update && apt upgrade' to update system")
-            recommendations+=("For Docker: 'apt install docker.io docker-compose'")
+    case $OS_ID in
+        ubuntu|debian)
+            echo -e "${BOLD}🎯 For ${OS_NAME}:${RESET}"
+            echo -e "  • Use apt for package management"
+            echo -e "  • Ubuntu/Debian images work best"
+            echo -e "  • Consider LTS versions for stability"
             ;;
-        fedora|rhel|centos)
-            recommendations+=("Use 'dnf update' to update system")
-            recommendations+=("For Docker: 'dnf install docker docker-compose'")
+        fedora|centos|rhel)
+            echo -e "${BOLD}🎯 For ${OS_NAME}:${RESET}"
+            echo -e "  • Use dnf/yum for package management"
+            echo -e "  • SELinux may need configuration"
+            echo -e "  • Enterprise-focused distributions"
             ;;
-        arch|manjaro)
-            recommendations+=("Use 'pacman -Syu' to update system")
-            recommendations+=("For Docker: 'pacman -S docker docker-compose'")
+        arch)
+            echo -e "${BOLD}🎯 For ${OS_NAME}:${RESET}"
+            echo -e "  • Use pacman for package management"
+            echo -e "  • Rolling release - always up-to-date"
+            echo -e "  • Great for development environments"
             ;;
         alpine)
-            recommendations+=("Use 'apk update && apk upgrade' to update system")
-            recommendations+=("For Docker: 'apk add docker docker-compose'")
+            echo -e "${BOLD}🎯 For ${OS_NAME}:${RESET}"
+            echo -e "  • Use apk for package management"
+            echo -e "  • Lightweight and security-focused"
+            echo -e "  • Perfect for containers"
             ;;
     esac
-    
-    # System-specific recommendations
-    local available_memory=$(free -m | awk '/^Mem:/{print $7}')
-    if [ $available_memory -lt 1024 ]; then
-        recommendations+=("Low memory detected (${available_memory}MB free) - Use lightweight containers")
-    fi
-    
-    if [ $(docker images -q 2>/dev/null | wc -l) -eq 0 ]; then
-        recommendations+=("No Docker images found - Pull base images (alpine, ubuntu, etc.)")
-    fi
-    
-    if [ ${#recommendations[@]} -gt 0 ]; then
-        print_box 70 "${SUGGEST_ICON} Intelligent Recommendations" "${FG_YELLOW}" \
-            "$(printf "• %s\n" "${recommendations[@]}")"
-    fi
 }
 
 auto_detect_os_images() {
-    print_status "OS" "Detecting optimal images for your Linux distribution..."
+    print_status "OS" "Detecting optimal images for your OS..."
     
-    eval $(detect_linux_distribution)
+    detect_linux_distribution
     
-    declare -A os_specific_images=(
-        ["ubuntu"]="ubuntu:latest,ubuntu:22.04,ubuntu:20.04"
-        ["debian"]="debian:latest,debian:bullseye,debian:buster"
-        ["fedora"]="fedora:latest,fedora:38,fedora:37"
-        ["centos"]="centos:7,centos:8,centos:stream"
-        ["alpine"]="alpine:latest,alpine:3.18"
-        ["arch"]="archlinux:latest"
-        ["opensuse"]="opensuse/leap,opensuse/tumbleweed"
-    )
+    echo -e "${BOLD}${FG_BLUE}${OS_LOGO} ${OS_NAME}-Compatible Images${RESET}\n"
     
-    echo -e "${BOLD}${FG_BLUE}${os_info[logo]} ${os_info[name]}-Specific Images:${RESET}\n"
-    
-    # Show images matching current OS
-    local base_os=${os_info[id]}
-    if [ -n "${os_specific_images[$base_os]}" ]; then
-        echo -e "${BOLD}🎯 Native Images (${base_os}):${RESET}"
-        IFS=',' read -ra images <<< "${os_specific_images[$base_os]}"
-        for image in "${images[@]}"; do
-            if docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "^${image}$"; then
-                echo -e "  ✅ ${image} ${DIM}(already available)${RESET}"
-            else
-                echo -e "  📦 ${image}"
-            fi
-        done
-        echo
-    fi
-    
-    # Show compatible images based on OS family
-    echo -e "${BOLD}🤝 Compatible Images:${RESET}"
-    
-    case $base_os in
-        ubuntu|debian|pop)
-            echo -e "  🐧 Debian-based: debian:slim, ubuntu:focal"
-            echo -e "  🔧 Development: python:3.11-slim, node:18-bullseye"
+    # OS-specific image suggestions
+    case $OS_ID in
+        ubuntu|debian)
+            echo -e "${BOLD}🎯 Ubuntu/Debian Images:${RESET}"
+            echo -e "  📦 ubuntu:latest (Official Ubuntu)"
+            echo -e "  📦 debian:bullseye-slim (Lightweight Debian)"
+            echo -e "  📦 python:3.11-slim (Python on Debian)"
+            echo -e "  📦 node:18-bullseye (Node.js LTS)"
             ;;
-        fedora|rhel|centos)
-            echo -e "  🎩 RedHat-based: centos:stream, rockylinux:9"
-            echo -e "  🔧 Development: python:3.11, node:18"
+        fedora|centos|rhel)
+            echo -e "${BOLD}🎯 RedHat Family Images:${RESET}"
+            echo -e "  📦 fedora:latest (Latest Fedora)"
+            echo -e "  📦 centos:7 (CentOS 7)"
+            echo -e "  📦 rockylinux:9 (Rocky Linux)"
+            echo -e "  📦 python:3.11 (Python on Fedora)"
+            ;;
+        arch)
+            echo -e "${BOLD}🎯 Arch Linux Images:${RESET}"
+            echo -e "  📦 archlinux:latest (Base Arch)"
+            echo -e "  📦 python:3.11 (Python on Arch)"
+            echo -e "  📦 node:current (Latest Node.js)"
             ;;
         alpine)
-            echo -e "  🏔️  Alpine-based: alpine:edge, nginx:alpine"
-            echo -e "  ⚡ Lightweight: busybox:latest, scratch"
+            echo -e "${BOLD}🎯 Alpine Linux Images:${RESET}"
+            echo -e "  📦 alpine:latest (Base Alpine)"
+            echo -e "  📦 nginx:alpine (Nginx on Alpine)"
+            echo -e "  📦 python:3.11-alpine (Python Alpine)"
+            echo -e "  📦 node:18-alpine (Node.js Alpine)"
+            ;;
+        *)
+            echo -e "${BOLD}🎯 Universal Images:${RESET}"
+            echo -e "  📦 alpine:latest (Lightweight)"
+            echo -e "  📦 ubuntu:latest (General purpose)"
+            echo -e "  📦 busybox:latest (Minimal)"
             ;;
     esac
+    
     echo
+    echo -e "${BOLD}💡 Smart Suggestions:${RESET}"
     
-    # Performance-optimized suggestions
-    print_status "AI" "Analyzing system for performance-optimized images..."
-    
-    local total_memory=$(free -m | awk '/^Mem:/{print $2}')
-    local cpu_cores=$(nproc)
-    
-    echo -e "${BOLD}⚡ Performance-Optimized Suggestions:${RESET}"
-    
-    if [ $total_memory -lt 2048 ]; then
-        echo -e "  💡 Low memory system detected (${total_memory}MB)"
-        echo -e "  📦 Recommended: alpine-based images (nginx:alpine, python:alpine)"
-        echo -e "  🎯 Use: --memory flag to limit container memory"
-    elif [ $total_memory -gt 8192 ]; then
-        echo -e "  💡 High memory system detected (${total_memory}MB)"
-        echo -e "  📦 Recommended: Full-featured images (ubuntu:latest, node:latest)"
-        echo -e "  🚀 Can run memory-intensive apps (databases, IDEs)"
-    fi
-    
-    if [ $cpu_cores -lt 4 ]; then
-        echo -e "  💡 Limited CPU cores detected ($cpu_cores cores)"
-        echo -e "  ⚠️  Avoid CPU-intensive parallel processing"
+    if [ $OS_MEMORY -lt 2048 ]; then
+        echo -e "  ⚠️  Low memory system (${OS_MEMORY}MB) - Use Alpine-based images"
+        echo -e "  ✅ Recommended: nginx:alpine, python:alpine, node:alpine"
+    elif [ $OS_MEMORY -gt 8192 ]; then
+        echo -e "  💪 High memory system (${OS_MEMORY}MB) - Can run heavy images"
+        echo -e "  ✅ Recommended: Full Ubuntu, databases, IDEs"
     else
-        echo -e "  💡 Good CPU resources ($cpu_cores cores)"
-        echo -e "  🚀 Can handle multi-container setups"
+        echo -e "  ⚡ Balanced system (${OS_MEMORY}MB) - Use slim variants"
+        echo -e "  ✅ Recommended: *-slim tags, moderate workloads"
     fi
 }
 
 auto_detect_multios_compatibility() {
-    print_status "DETECT" "Analyzing multi-OS container compatibility..."
+    print_status "DETECT" "Analyzing multi-OS compatibility..."
     
-    eval $(detect_linux_distribution)
+    detect_linux_distribution
     
-    echo -e "${BOLD}${FG_BLUE}🌍 Multi-OS Container Compatibility Matrix${RESET}\n"
+    echo -e "${BOLD}${FG_BLUE}🌍 Multi-OS Container Compatibility${RESET}\n"
     
-    # Current host architecture
-    local host_arch=$(uname -m)
-    local supported_architectures=()
+    echo -e "${BOLD}🏗️  Host System:${RESET}"
+    echo -e "  OS: ${OS_NAME} ${OS_VERSION}"
+    echo -e "  Arch: ${OS_ARCH}"
+    echo -e "  Kernel: ${OS_KERNEL}"
+    echo
     
-    case $host_arch in
+    echo -e "${BOLD}📦 Supported Container OS Types:${RESET}"
+    echo -e "  ✅ Linux (amd64, arm64, armv7)"
+    echo -e "  ✅ Windows Server (via Linux containers)"
+    echo -e "  ✅ macOS (via Docker Desktop)"
+    echo
+    
+    echo -e "${BOLD}🔧 Architecture Support:${RESET}"
+    case $OS_ARCH in
         x86_64)
-            supported_architectures=("amd64" "i386" "arm64 (via emulation)")
-            echo -e "${BOLD}🏗️  Host Architecture:${RESET} x86_64 (amd64)"
+            echo -e "  ✅ amd64 (Native)"
+            echo -e "  ✅ i386 (32-bit)"
+            echo -e "  ⚠️  arm64 (via QEMU emulation)"
             ;;
         aarch64|arm64)
-            supported_architectures=("arm64" "armv7" "armhf")
-            echo -e "${BOLD}🏗️  Host Architecture:${RESET} ARM64"
+            echo -e "  ✅ arm64 (Native)"
+            echo -e "  ✅ armv7 (Compatible)"
+            echo -e "  ⚠️  amd64 (via emulation, slow)"
             ;;
         armv7l)
-            supported_architectures=("armv7" "armhf")
-            echo -e "${BOLD}🏗️  Host Architecture:${RESET} ARMv7"
-            ;;
-        *)
-            supported_architectures=("$host_arch")
-            echo -e "${BOLD}🏗️  Host Architecture:${RESET} $host_arch"
+            echo -e "  ✅ armv7 (Native)"
+            echo -e "  ✅ armhf (Compatible)"
+            echo -e "  ❌ amd64 (Not supported)"
             ;;
     esac
     
-    echo -e "${BOLD}📦 Supported Container Architectures:${RESET}"
-    for arch in "${supported_architectures[@]}"; do
-        echo -e "  ✅ $arch"
-    done
     echo
+    echo -e "${BOLD}🌐 Multi-Arch Images Available:${RESET}"
+    echo -e "  • docker.io/library/nginx:latest"
+    echo -e "  • docker.io/library/ubuntu:latest"
+    echo -e "  • docker.io/library/alpine:latest"
+    echo -e "  • docker.io/library/node:lts"
+    echo -e "  • docker.io/library/postgres:latest"
     
-    # Multi-arch image support
-    print_status "AI" "Checking multi-architecture image support..."
-    
-    local multi_arch_images=(
-        "docker.io/library/nginx:latest"
-        "docker.io/library/ubuntu:latest"
-        "docker.io/library/alpine:latest"
-        "docker.io/library/node:lts"
-        "docker.io/library/python:3.11"
-        "docker.io/library/postgres:latest"
-        "docker.io/library/redis:latest"
-    )
-    
-    echo -e "${BOLD}🌐 Multi-Arch Available Images:${RESET}"
-    for image in "${multi_arch_images[@]}"; do
-        echo -e "  🌍 $image"
-    done
     echo
-    
-    # OS compatibility matrix
-    declare -A os_compatibility=(
-        ["alpine"]="Linux, Docker, Kubernetes, Podman"
-        ["ubuntu"]="Linux, Windows Server, macOS (Docker Desktop)"
-        ["debian"]="Linux, Cloud Providers, Embedded"
-        ["fedora"]="Linux, Development Workstations"
-        ["centos"]="Enterprise Linux, Servers"
-        ["windows"]="Windows Server, Windows 10/11 (Docker Desktop)"
-    )
-    
-    echo -e "${BOLD}🔄 Cross-Platform Compatibility:${RESET}"
-    for os in "${!os_compatibility[@]}"; do
-        echo -e "  🔄 ${os}: ${os_compatibility[$os]}"
-    done
-    echo
-    
-    # Docker platform suggestions
-    print_status "SUGGEST" "Platform-specific recommendations..."
-    
-    case ${os_info[id]} in
-        ubuntu|debian)
-            echo -e "${BOLD}🎯 For ${os_info[name]}:${RESET}"
-            echo -e "  🐋 Use: docker.io/library/ images for stability"
-            echo -e "  🔧 Develop: Multi-stage builds for smaller images"
-            echo -e "  🚀 Deploy: Use Docker Compose for multi-service apps"
-            ;;
-        alpine)
-            echo -e "${BOLD}🎯 For Alpine Linux:${RESET}"
-            echo -e "  🏔️  Use: Alpine-based images for minimal footprint"
-            echo -e "  🔧 Develop: Static binaries for maximum compatibility"
-            echo -e "  📦 Package: Use apk in Dockerfile"
-            ;;
-        fedora|centos|rhel)
-            echo -e "${BOLD}🎯 For ${os_info[name]}:${RESET}"
-            echo -e "  🎩 Use: RedHat certified images for enterprise"
-            echo -e "  🔒 Security: Use podman for rootless containers"
-            echo -e "  🚀 Scale: Use Kubernetes/OpenShift for orchestration"
-            ;;
-    esac
-}
-
-auto_suggest_os_specific_commands() {
-    eval $(detect_linux_distribution)
-    
-    local base_os=${os_info[id]}
-    local pkg_manager=${os_info[package_manager]}
-    
-    echo -e "${BOLD}${FG_BLUE}${os_info[logo]} ${os_info[name]}-Specific Docker Commands${RESET}\n"
-    
-    case $pkg_manager in
-        apt)
-            print_box 65 "Ubuntu/Debian Commands" "${FG_MAGENTA}" \
-                "${BOLD}Install Docker:${RESET}\n"\
-                "  sudo apt update\n"\
-                "  sudo apt install docker.io docker-compose\n"\
-                "${BOLD}Manage Service:${RESET}\n"\
-                "  sudo systemctl start docker\n"\
-                "  sudo systemctl enable docker\n"\
-                "${BOLD}Add User to Docker Group:${RESET}\n"\
-                "  sudo usermod -aG docker \$USER"
-            ;;
-        dnf|yum)
-            print_box 65 "Fedora/RHEL/CentOS Commands" "${FG_RED}" \
-                "${BOLD}Install Docker:${RESET}\n"\
-                "  sudo dnf install docker docker-compose\n"\
-                "${BOLD}Manage Service:${RESET}\n"\
-                "  sudo systemctl start docker\n"\
-                "  sudo systemctl enable docker\n"\
-                "${BOLD}SELinux for Docker:${RESET}\n"\
-                "  sudo setenforce 0  # Temporary\n"\
-                "  # Or configure SELinux policies permanently"
-            ;;
-        pacman)
-            print_box 65 "Arch Linux Commands" "${FG_CYAN}" \
-                "${BOLD}Install Docker:${RESET}\n"\
-                "  sudo pacman -S docker docker-compose\n"\
-                "${BOLD}Manage Service:${RESET}\n"\
-                "  sudo systemctl start docker\n"\
-                "  sudo systemctl enable docker\n"\
-                "${BOLD}Rootless Docker:${RESET}\n"\
-                "  sudo pacman -S fuse-overlayfs\n"\
-                "  dockerd-rootless-setuptool.sh install"
-            ;;
-        apk)
-            print_box 65 "Alpine Linux Commands" "${FG_BLUE}" \
-                "${BOLD}Install Docker:${RESET}\n"\
-                "  sudo apk add docker docker-compose\n"\
-                "${BOLD}Manage Service:${RESET}\n"\
-                "  sudo service docker start\n"\
-                "  sudo rc-update add docker boot\n"\
-                "${BOLD}Alpine Specific:${RESET}\n"\
-                "  # Use edge repository for latest\n"\
-                "  echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories"
-            ;;
-        zypper)
-            print_box 65 "openSUSE Commands" "${FG_GREEN}" \
-                "${BOLD}Install Docker:${RESET}\n"\
-                "  sudo zypper install docker docker-compose\n"\
-                "${BOLD}Manage Service:${RESET}\n"\
-                "  sudo systemctl start docker\n"\
-                "  sudo systemctl enable docker\n"\
-                "${BOLD}openSUSE Specific:${RESET}\n"\
-                "  # Use OBS repositories for latest versions\n"\
-                "  sudo zypper addrepo https://download.opensuse.org/repositories/Virtualization/openSUSE_Leap_15.3/Virtualization.repo"
-            ;;
-    esac
+    echo -e "${BOLD}💡 Tips:${RESET}"
+    echo -e "  • Use 'docker pull --platform' for specific architectures"
+    echo -e "  • Build multi-arch images with Buildx"
+    echo -e "  • Test compatibility with different base images"
 }
 
 auto_detect_development_stacks() {
-    print_status "DETECT" "Auto-detecting development stacks and tools..."
+    print_status "DETECT" "Auto-detecting development stacks..."
     
     echo -e "${BOLD}${FG_BLUE}🔧 Development Stack Detection${RESET}\n"
     
-    local detected_stacks=()
+    local detected=()
     
-    # Programming Languages
-    if command -v python3 &>/dev/null || [ -f "requirements.txt" ] || [ -f "setup.py" ] || [ -f "Pipfile" ]; then
-        detected_stacks+=("Python $(python3 --version 2>/dev/null || echo '')")
+    # Check for programming languages
+    if command -v python3 &>/dev/null || [ -f "requirements.txt" ]; then
+        detected+=("Python $(python3 --version 2>/dev/null | awk '{print $2}')")
     fi
     
-    if command -v node &>/dev/null || [ -f "package.json" ] || [ -f "yarn.lock" ] || [ -f "package-lock.json" ]; then
-        detected_stacks+=("Node.js $(node --version 2>/dev/null || echo '')")
+    if command -v node &>/dev/null || [ -f "package.json" ]; then
+        detected+=("Node.js $(node --version 2>/dev/null)")
     fi
     
-    if command -v java &>/dev/null || [ -f "pom.xml" ] || [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-        detected_stacks+=("Java $(java -version 2>&1 | head -1 | awk '{print $3}')")
+    if command -v java &>/dev/null || [ -f "pom.xml" ]; then
+        detected+=("Java")
     fi
     
-    if command -v go &>/dev/null || [ -f "go.mod" ] || [ -f "main.go" ]; then
-        detected_stacks+=("Go $(go version | awk '{print $3}')")
+    if command -v php &>/dev/null || [ -f "composer.json" ]; then
+        detected+=("PHP $(php --version 2>/dev/null | head -1 | awk '{print $2}')")
     fi
     
-    if command -v php &>/dev/null || [ -f "composer.json" ] || [ -f "index.php" ]; then
-        detected_stacks+=("PHP $(php --version | head -1 | awk '{print $2}')")
+    if command -v go &>/dev/null || [ -f "go.mod" ]; then
+        detected+=("Go $(go version 2>/dev/null | awk '{print $3}')")
     fi
     
-    if command -v ruby &>/dev/null || [ -f "Gemfile" ] || [ -f "config.ru" ]; then
-        detected_stacks+=("Ruby $(ruby --version | awk '{print $2}')")
-    fi
-    
-    if command -v rustc &>/dev/null || [ -f "Cargo.toml" ]; then
-        detected_stacks+=("Rust $(rustc --version | awk '{print $2}')")
+    if command -v ruby &>/dev/null || [ -f "Gemfile" ]; then
+        detected+=("Ruby $(ruby --version 2>/dev/null | awk '{print $2}')")
     fi
     
     # Databases
-    if command -v mysql &>/dev/null || command -v psql &>/dev/null || command -v mongod &>/dev/null || command -v redis-server &>/dev/null; then
-        detected_stacks+=("Databases")
+    if command -v mysql &>/dev/null; then
+        detected+=("MySQL")
     fi
     
-    # Web Servers
-    if command -v nginx &>/dev/null || command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
-        detected_stacks+=("Web Servers")
+    if command -v psql &>/dev/null; then
+        detected+=("PostgreSQL")
     fi
     
-    # Container Tools
-    if command -v kubectl &>/dev/null; then
-        detected_stacks+=("Kubernetes")
+    # Web servers
+    if command -v nginx &>/dev/null; then
+        detected+=("Nginx")
     fi
     
-    if command -v helm &>/dev/null; then
-        detected_stacks+=("Helm")
+    if command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
+        detected+=("Apache")
     fi
     
-    # Show detected stacks
-    if [ ${#detected_stacks[@]} -gt 0 ]; then
-        echo -e "${BOLD}✅ Detected Development Stacks:${RESET}"
-        for stack in "${detected_stacks[@]}"; do
-            echo -e "  🛠️  $stack"
+    # Display results
+    if [ ${#detected[@]} -gt 0 ]; then
+        echo -e "${BOLD}✅ Detected:${RESET}"
+        for item in "${detected[@]}"; do
+            echo -e "  🛠️  $item"
         done
-        echo
     else
         echo -e "${BOLD}ℹ️  No development stacks detected${RESET}"
-        echo -e "  Try: cd to a project directory or install development tools"
-        echo
+        echo -e "  Try navigating to a project directory"
     fi
     
-    # Suggest Docker images based on detected stacks
-    print_status "AI" "Suggesting Docker images for your development stack..."
+    echo
+    echo -e "${BOLD}📦 Suggested Docker Images:${RESET}"
     
-    local suggested_images=()
-    
-    for stack in "${detected_stacks[@]}"; do
-        case $stack in
-            *Python*)
-                suggested_images+=("python:3.11-slim - Latest Python with minimal footprint")
-                suggested_images+=("python:3.11-alpine - Ultra-lightweight Python")
+    # Suggest images based on detected stacks
+    for item in "${detected[@]}"; do
+        case $item in
+            Python*)
+                echo -e "  💡 python:3.11-slim - Lightweight Python"
+                echo -e "  💡 python:3.11-alpine - Minimal Python"
                 ;;
-            *Node*)
-                suggested_images+=("node:18-alpine - Node.js LTS on Alpine")
-                suggested_images+=("node:current-slim - Latest Node.js slim")
+            Node*)
+                echo -e "  💡 node:18-alpine - Node.js LTS"
+                echo -e "  💡 node:current - Latest Node.js"
                 ;;
-            *Java*)
-                suggested_images+=("openjdk:17-jdk-slim - Java 17 Development Kit")
-                suggested_images+=("openjdk:17-jre-slim - Java 17 Runtime")
+            Java*)
+                echo -e "  💡 openjdk:17-jdk-slim - Java 17"
+                echo -e "  💡 openjdk:11-jre-slim - Java 11 Runtime"
                 ;;
-            *Go*)
-                suggested_images+=("golang:1.20-alpine - Go with Alpine")
-                suggested_images+=("golang:1.20-bullseye - Go on Debian")
+            PHP*)
+                echo -e "  💡 php:8.2-apache - PHP with Apache"
+                echo -e "  💡 php:8.2-fpm - PHP-FPM"
                 ;;
-            *PHP*)
-                suggested_images+=("php:8.2-apache - PHP with Apache")
-                suggested_images+=("php:8.2-fpm - PHP-FPM for Nginx")
+            Go*)
+                echo -e "  💡 golang:1.20-alpine - Go on Alpine"
                 ;;
-            *Databases*)
-                suggested_images+=("postgres:15-alpine - PostgreSQL database")
-                suggested_images+=("mysql:8.0 - MySQL database")
-                suggested_images+=("redis:7-alpine - Redis cache")
-                suggested_images+=("mongo:6.0 - MongoDB NoSQL")
+            MySQL*)
+                echo -e "  💡 mysql:8.0 - MySQL Database"
                 ;;
-            *Web*)
-                suggested_images+=("nginx:alpine - Lightweight web server")
-                suggested_images+=("httpd:alpine - Apache web server")
+            PostgreSQL*)
+                echo -e "  💡 postgres:15-alpine - PostgreSQL"
+                ;;
+            Nginx*)
+                echo -e "  💡 nginx:alpine - Lightweight web server"
+                ;;
+            Apache*)
+                echo -e "  💡 httpd:alpine - Apache on Alpine"
                 ;;
         esac
-    done
-    
-    if [ ${#suggested_images[@]} -gt 0 ]; then
-        echo -e "${BOLD}📦 Suggested Docker Images:${RESET}"
-        for image in "${suggested_images[@]}"; do
-            echo -e "  💡 $image"
-        done
-    fi
+    done | head -10  # Limit suggestions
 }
 
-# ===== Main Detection Menu =====
+auto_suggest_os_specific_commands() {
+    detect_linux_distribution
+    
+    echo -e "${BOLD}${FG_BLUE}${OS_LOGO} ${OS_NAME}-Specific Commands${RESET}\n"
+    
+    case $OS_PACKAGE_MANAGER in
+        apt)
+            echo -e "${BOLD}📦 Install Docker:${RESET}"
+            echo -e "  sudo apt update"
+            echo -e "  sudo apt install docker.io docker-compose"
+            echo -e "  sudo systemctl start docker"
+            echo -e "  sudo usermod -aG docker \$USER"
+            ;;
+        dnf|yum)
+            echo -e "${BOLD}📦 Install Docker:${RESET}"
+            echo -e "  sudo dnf install docker docker-compose"
+            echo -e "  sudo systemctl start docker"
+            echo -e "  sudo systemctl enable docker"
+            ;;
+        pacman)
+            echo -e "${BOLD}📦 Install Docker:${RESET}"
+            echo -e "  sudo pacman -S docker docker-compose"
+            echo -e "  sudo systemctl start docker"
+            echo -e "  sudo systemctl enable docker"
+            ;;
+        apk)
+            echo -e "${BOLD}📦 Install Docker:${RESET}"
+            echo -e "  sudo apk add docker docker-compose"
+            echo -e "  sudo service docker start"
+            echo -e "  sudo rc-update add docker boot"
+            ;;
+        zypper)
+            echo -e "${BOLD}📦 Install Docker:${RESET}"
+            echo -e "  sudo zypper install docker docker-compose"
+            echo -e "  sudo systemctl start docker"
+            echo -e "  sudo systemctl enable docker"
+            ;;
+        *)
+            echo -e "${BOLD}📦 Universal Installation:${RESET}"
+            echo -e "  curl -fsSL https://get.docker.com | sh"
+            echo -e "  sudo systemctl start docker"
+            echo -e "  sudo usermod -aG docker \$USER"
+            ;;
+    esac
+    
+    echo
+    echo -e "${BOLD}🔧 Common Docker Commands:${RESET}"
+    echo -e "  docker ps                          # List containers"
+    echo -e "  docker images                      # List images"
+    echo -e "  docker run -it ubuntu bash        # Run Ubuntu container"
+    echo -e "  docker build -t myapp .           # Build image"
+}
+
+# ===== Detection Menu =====
 detection_menu() {
     while true; do
         print_header
         
-        eval $(detect_linux_distribution)
+        detect_linux_distribution
         
         echo -e "${BOLD}${FG_BLUE}${AI_ICON} AI Auto-Detection Center${RESET}"
-        echo -e "${DIM}${os_info[logo]} Running on: ${os_info[name]} ${os_info[version]} | Kernel: ${os_info[kernel]}${RESET}\n"
+        echo -e "${DIM}${OS_LOGO} Running on: ${OS_NAME} ${OS_VERSION}${RESET}\n"
         
-        print_menu_item 1 "🐧" "Complete OS Analysis" "Detailed Linux distribution analysis"
-        print_menu_item 2 "📦" "OS-Specific Images" "Optimal images for your Linux distro"
-        print_menu_item 3 "🌍" "Multi-OS Compatibility" "Cross-platform container support"
-        print_menu_item 4 "🛠️" "Development Stack Detect" "Auto-detect dev tools & suggest images"
-        print_menu_item 5 "⚡" "Performance Analysis" "System resource analysis & optimization"
-        print_menu_item 6 "💻" "OS-Specific Commands" "${os_info[name]}-specific Docker commands"
-        print_menu_item 7 "📊" "Docker Health Check" "Analyze Docker installation & performance"
-        print_menu_item 8 "🔧" "Auto-Optimize System" "AI-driven system optimization"
-        print_menu_item 9 "🏠" "Back to Main Menu" "Return to main menu"
+        print_menu_item 1 "🐧" "Complete OS Analysis" "Detailed system analysis"
+        print_menu_item 2 "📦" "OS-Specific Images" "Optimal images for your OS"
+        print_menu_item 3 "🌍" "Multi-OS Compatibility" "Cross-platform support"
+        print_menu_item 4 "🛠️" "Development Stack Detect" "Auto-detect dev tools"
+        print_menu_item 5 "💻" "OS-Specific Commands" "${OS_NAME}-specific Docker commands"
+        print_menu_item 6 "🏠" "Back to Main Menu" "Return to main menu"
         
         echo
-        read -rp "$(echo -e "${FG_MAGENTA}🎯${RESET} Select option (1-9): ")" detect_opt
+        read -rp "$(print_status "INPUT" "Select option (1-6): ")" detect_opt
         
         case $detect_opt in
             1) display_os_info; pause ;;
             2) auto_detect_os_images; pause ;;
             3) auto_detect_multios_compatibility; pause ;;
             4) auto_detect_development_stacks; pause ;;
-            5) 
-                print_status "ANALYZE" "Running performance analysis..."
-                # Call performance analysis function
-                pause 
-                ;;
-            6) auto_suggest_os_specific_commands; pause ;;
-            7) 
-                print_status "DETECT" "Checking Docker health..."
-                # Call Docker health check function
-                pause 
-                ;;
-            8) 
-                print_status "OPTIMIZE" "Running auto-optimization..."
-                # Call optimization function
-                pause 
-                ;;
-            9) return ;;
+            5) auto_suggest_os_specific_commands; pause ;;
+            6) return ;;
             *)
                 print_status "ERROR" "Invalid option!"
                 sleep 1
                 ;;
         esac
     done
+}
+
+# ===== Docker Check =====
+check_docker() {
+    if ! command -v docker &>/dev/null; then
+        print_header
+        print_status "ERROR" "Docker not found!"
+        echo
+        
+        detect_linux_distribution
+        
+        echo -e "${BOLD}${FG_BLUE}${OS_LOGO} Detected: ${OS_NAME} ${OS_VERSION}${RESET}"
+        echo -e "${BOLD}Package Manager: ${OS_PACKAGE_MANAGER}${RESET}\n"
+        
+        auto_suggest_os_specific_commands
+        
+        echo -e "\n${FG_YELLOW}⚠️  After installing Docker, logout and login again${RESET}"
+        echo -e "${FG_YELLOW}   or run: newgrp docker${RESET}"
+        
+        exit 1
+    fi
 }
 
 # ===== Main Menu =====
@@ -827,61 +634,98 @@ main_menu() {
     while true; do
         print_header
         
-        # Get OS info for quick display
-        eval $(detect_linux_distribution 2>/dev/null || declare -A os_info=(["logo"]="🐧" ["name"]="Linux"))
+        detect_linux_distribution
         
-        # Show quick stats
-        local running=0
-        local total=0
-        local images=0
+        # Get Docker stats
+        local running=$(docker ps -q 2>/dev/null | wc -l)
+        local total=$(docker ps -aq 2>/dev/null | wc -l)
+        local images=$(docker images -q 2>/dev/null | wc -l)
         
-        if command -v docker &>/dev/null; then
-            running=$(docker ps -q 2>/dev/null | wc -l)
-            total=$(docker ps -aq 2>/dev/null | wc -l)
-            images=$(docker images -q 2>/dev/null | wc -l)
-        fi
-        
-        echo -e "${BOLD}${FG_CYAN}${os_info[logo]} ${os_info[name]} ${os_info[version]}${RESET} ${DIM}| ${AI_ICON} AI Auto-Detect Enabled${RESET}"
+        echo -e "${BOLD}${FG_CYAN}${OS_LOGO} ${OS_NAME} ${OS_VERSION}${RESET} ${DIM}| ${AI_ICON} AI Auto-Detect${RESET}"
         echo -e "${DIM}══════════════════════════════════════════════════════════════════════════════${RESET}\n"
         
         echo -e "${BOLD}📊 Quick Stats:${RESET}"
         echo -e "  🐳 Containers: ${BOLD}${FG_GREEN}$running${RESET} running / ${BOLD}$total${RESET} total"
         echo -e "  📦 Images: ${BOLD}$images${RESET}"
-        echo -e "  💻 OS: ${BOLD}${os_info[name]} ${os_info[version]}${RESET}"
-        echo -e "  🏗️  Arch: ${BOLD}${os_info[architecture]}${RESET}"
+        echo -e "  💻 OS: ${BOLD}${OS_NAME}${RESET}"
+        echo -e "  🏗️  Arch: ${BOLD}${OS_ARCH}${RESET}"
         echo
         
         # Menu options
-        print_menu_item 1 "${AI_ICON}" "AI Auto-Detection Center" "Smart analysis & multi-OS detection"
-        print_menu_item 2 "📋" "List Containers" "Show all containers with AI insights"
-        print_menu_item 3 "🚀" "Start Container" "Start with auto-recommendations"
-        print_menu_item 4 "🛑" "Stop Container" "Stop with resource analysis"
-        print_menu_item 5 "🔄" "Restart Container" "Smart restart with health checks"
-        print_menu_item 6 "🗑️" "Delete Container" "Safe deletion with dependency check"
-        print_menu_item 7 "📜" "View Logs" "Intelligent log filtering"
-        print_menu_item 8 "⚡" "Quick Run" "Auto-detect ports & suggest images"
-        print_menu_item 9 "📦" "Image Manager" "Smart image management"
-        print_menu_item 10 "🔧" "Advanced Create" "AI-assisted container creation"
-        print_menu_item 11 "📈" "System Stats" "Comprehensive resource analysis"
-        print_menu_item 12 "🧹" "Cleanup System" "AI-powered cleanup"
-        print_menu_item 13 "👋" "Exit" "Exit Docker Manager"
+        print_menu_item 1 "${AI_ICON}" "AI Auto-Detection Center" "Smart analysis & OS detection"
+        print_menu_item 2 "📋" "List Containers" "Show all containers"
+        print_menu_item 3 "🚀" "Start Container" "Start a container"
+        print_menu_item 4 "🛑" "Stop Container" "Stop a container"
+        print_menu_item 5 "🔄" "Restart Container" "Restart a container"
+        print_menu_item 6 "🗑️" "Delete Container" "Delete a container"
+        print_menu_item 7 "📜" "View Logs" "View container logs"
+        print_menu_item 8 "⚡" "Quick Run" "Auto-run container"
+        print_menu_item 9 "📦" "Image Manager" "Manage Docker images"
+        print_menu_item 10 "🔧" "Advanced Create" "Create container"
+        print_menu_item 11 "📈" "System Stats" "Docker statistics"
+        print_menu_item 12 "🧹" "Cleanup System" "Clean Docker system"
+        print_menu_item 13 "👋" "Exit" "Exit program"
         
         echo
-        read -rp "$(echo -e "${FG_MAGENTA}🎯${RESET} Select option (1-13): ")" opt
+        read -rp "$(print_status "INPUT" "Select option (1-13): ")" opt
         
         case $opt in
             1) detection_menu ;;
-            2) list_containers; pause ;;
-            3) start_container; pause ;;
-            4) stop_container; pause ;;
-            5) restart_container; pause ;;
-            6) delete_container; pause ;;
-            7) view_logs ;;
-            8) quick_run; pause ;;
-            9) image_menu ;;
-            10) advanced_create; pause ;;
-            11) docker_stats; pause ;;
-            12) cleanup_system; pause ;;
+            2) 
+                print_status "INFO" "Listing containers..."
+                docker ps -a
+                pause
+                ;;
+            3)
+                read -rp "$(print_status "INPUT" "Container name to start: ")" container
+                docker start "$container"
+                pause
+                ;;
+            4)
+                read -rp "$(print_status "INPUT" "Container name to stop: ")" container
+                docker stop "$container"
+                pause
+                ;;
+            5)
+                read -rp "$(print_status "INPUT" "Container name to restart: ")" container
+                docker restart "$container"
+                pause
+                ;;
+            6)
+                read -rp "$(print_status "INPUT" "Container name to delete: ")" container
+                docker rm -f "$container"
+                pause
+                ;;
+            7)
+                read -rp "$(print_status "INPUT" "Container name for logs: ")" container
+                docker logs -f "$container"
+                ;;
+            8)
+                read -rp "$(print_status "INPUT" "Image to run (e.g., nginx): ")" image
+                docker run -d --name "ct-$(date +%H%M%S)" "$image"
+                pause
+                ;;
+            9)
+                print_status "INFO" "Listing images..."
+                docker images
+                pause
+                ;;
+            10)
+                read -rp "$(print_status "INPUT" "Image name: ")" image
+                read -rp "$(print_status "INPUT" "Container name: ")" name
+                docker run -d --name "$name" "$image"
+                pause
+                ;;
+            11)
+                print_status "INFO" "Docker system info..."
+                docker system df
+                pause
+                ;;
+            12)
+                print_status "INFO" "Cleaning up..."
+                docker system prune -f
+                pause
+                ;;
             13)
                 print_header
                 echo -e "${FG_GREEN}${BOLD}"
@@ -901,123 +745,5 @@ main_menu() {
     done
 }
 
-# ===== Docker Check =====
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        print_header
-        print_status "ERROR" "Docker not found!"
-        echo
-        
-        eval $(detect_linux_distribution)
-        
-        echo -e "${BOLD}${FG_BLUE}${os_info[logo]} Detected: ${os_info[name]} ${os_info[version]}${RESET}"
-        echo -e "${BOLD}Package Manager: ${os_info[package_manager]}${RESET}\n"
-        
-        case ${os_info[package_manager]} in
-            apt)
-                echo -e "${BOLD}For Ubuntu/Debian:${RESET}"
-                echo -e "  sudo apt update"
-                echo -e "  sudo apt install docker.io docker-compose"
-                ;;
-            dnf|yum)
-                echo -e "${BOLD}For Fedora/RHEL/CentOS:${RESET}"
-                echo -e "  sudo dnf install docker docker-compose"
-                ;;
-            pacman)
-                echo -e "${BOLD}For Arch Linux:${RESET}"
-                echo -e "  sudo pacman -S docker docker-compose"
-                ;;
-            apk)
-                echo -e "${BOLD}For Alpine Linux:${RESET}"
-                echo -e "  sudo apk add docker docker-compose"
-                ;;
-            zypper)
-                echo -e "${BOLD}For openSUSE:${RESET}"
-                echo -e "  sudo zypper install docker docker-compose"
-                ;;
-            *)
-                echo -e "${BOLD}Universal Installation:${RESET}"
-                echo -e "  curl -fsSL https://get.docker.com | sh"
-                ;;
-        esac
-        
-        echo -e "\n${BOLD}After installation:${RESET}"
-        echo -e "  sudo systemctl start docker"
-        echo -e "  sudo systemctl enable docker"
-        echo -e "  sudo usermod -aG docker \$USER"
-        echo -e "\n${FG_YELLOW}⚠️  Logout and login again after adding user to docker group${RESET}"
-        
-        exit 1
-    fi
-}
-
-# ===== Container Operations =====
-list_containers() {
-    print_header
-    print_status "INFO" "Listing all containers with AI insights"
-    echo
-    
-    # First, show system context
-    eval $(detect_linux_distribution)
-    echo -e "${BOLD}${FG_CYAN}${os_info[logo]} Context: ${os_info[name]} | $(date)${RESET}\n"
-    
-    local running=$(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | head -1)
-    local stopped=$(docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | head -1)
-    
-    echo -e "${BOLD}${FG_GREEN}🚀 Running Containers:${RESET}"
-    if [ $(docker ps -q | wc -l) -gt 0 ]; then
-        docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
-    else
-        echo -e "${DIM}No running containers${RESET}"
-    fi
-    
-    echo
-    echo -e "${BOLD}${FG_YELLOW}💤 Stopped Containers:${RESET}"
-    if [ $(docker ps -a -q | wc -l) -gt $(docker ps -q | wc -l) ]; then
-        docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | tail -n +2
-    else
-        echo -e "${DIM}No stopped containers${RESET}"
-    fi
-    
-    echo
-    echo -e "${BOLD}📊 Statistics:${RESET}"
-    echo -e "  Total: $(docker ps -a -q | wc -l) containers"
-    echo -e "  Running: $(docker ps -q | wc -l) containers"
-    echo -e "  Stopped: $(($(docker ps -a -q | wc -l) - $(docker ps -q | wc -l))) containers"
-    
-    # AI Insights
-    if [ $(docker ps -a -q | wc -l) -gt 0 ]; then
-        echo -e "\n${BOLD}${AI_ICON} AI Insights:${RESET}"
-        
-        # Check for containers without restart policy
-        local no_restart=$(docker ps -a --format "{{.Names}}" | while read c; do
-            docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$c" | grep -q "no" && echo "$c"
-        done | wc -l)
-        
-        if [ $no_restart -gt 0 ]; then
-            echo -e "  ⚠️  $no_restart containers without restart policy - Consider adding '--restart unless-stopped'"
-        fi
-        
-        # Check for old containers
-        local old_containers=$(docker ps -a --format "{{.Names}}\t{{.CreatedAt}}" | awk -v cutoff=$(date -d "30 days ago" +%s) '
-            {cmd="date -d \""$2" " $3"\" +%s"; cmd | getline ts; close(cmd); 
-            if (ts < cutoff) print $1}
-        ' | wc -l)
-        
-        if [ $old_containers -gt 0 ]; then
-            echo -e "  ⏳ $old_containers containers older than 30 days - Consider cleanup"
-        fi
-    fi
-}
-
-# Note: Other functions (start_container, stop_container, etc.) would be updated similarly
-# with AI insights and OS-specific logic. Due to space constraints, I'm showing the
-# core detection features. The complete implementation would include all previous
-# functions enhanced with AI and OS detection.
-
-# ===== Start the application =====
-print_header
-print_status "AI" "Initializing AI Auto-Detect System..."
-sleep 1
-
+# ===== Start Application =====
 main_menu
