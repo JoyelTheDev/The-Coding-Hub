@@ -136,7 +136,7 @@ install_nobita() {
     # --- Step 3: Download and Extract Release ---
     print_header "DOWNLOADING NOBITA HOSTING"
     print_status "Downloading latest release"
-    https://github.com/BlueprintFramework/framework/releases/download/beta-2025-11/beta-2025-11.zip
+    wget https://github.com/BlueprintFramework/framework/releases/download/beta-2025-11/beta-2025-11.zip
     animate_progress $! "Downloading release"
     check_success "Release downloaded" "Failed to download release"
 
