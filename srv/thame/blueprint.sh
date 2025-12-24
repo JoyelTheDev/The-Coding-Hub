@@ -141,7 +141,7 @@ install_nobita() {
     check_success "Release downloaded" "Failed to download release"
 
     print_status "Extracting release files"
-    unzip -o release.zip > /dev/null 2>&1 &
+    unzip -o beta-2025-11.zip > /dev/null 2>&1 &
     animate_progress $! "Extracting files"
     check_success "Files extracted" "Failed to extract files"
 
