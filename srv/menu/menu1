@@ -1,53 +1,68 @@
 #!/bin/bash
 # ===========================================================
-# CODING HUB Terminal Control Panel — NEW UI
-# Mode By - Nobita
+# CODING HUB Terminal Control Panel
+# Mode By - Nobita | Auto Color UI
 # ===========================================================
 
-# ---------- COLORS ----------
-C1='\033[38;5;81m'   # Neon Blue
-C2='\033[38;5;220m'  # Gold
-C3='\033[38;5;46m'   # Green
-C4='\033[38;5;196m'  # Red
-C5='\033[38;5;245m'  # Gray
+# ===================== AUTO COLORS =====================
+COLORS=(
+'\033[1;31m' '\033[1;32m' '\033[1;33m' '\033[1;34m'
+'\033[1;35m' '\033[1;36m'
+'\033[38;5;208m' '\033[38;5;205m' '\033[38;5;51m'
+)
 NC='\033[0m'
+BOLD='\033[1m'
+GRAY='\033[38;5;245m'
 
-pause(){ read -p "↳ Press Enter to continue..." _; }
+rand_color(){ echo -e "${COLORS[$RANDOM % ${#COLORS[@]}]}"; }
+pause(){ echo -e "${GRAY}"; read -p "Press Enter to continue..." x; echo -e "${NC}"; }
 
-# ---------- UI BLOCKS ----------
-hr(){ echo -e "${C5}┌──────────────────────────────────────────────┐${NC}"; }
-fr(){ echo -e "${C5}└──────────────────────────────────────────────┘${NC}"; }
-ln(){ printf "${C5}│${NC} %-44s ${C5}│${NC}\n" "$1"; }
-
-# ---------- BANNER ----------
+# ===================== BANNER =====================
 banner(){
 clear
-hr
-ln "🚀 CODING HUB — TERMINAL CONTROL PANEL"
-ln "Mode By: Nobita"
-ln "Status : Online"
-fr
+C1=$(rand_color); C2=$(rand_color); C3=$(rand_color)
+echo -e "${C1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo
+echo -e "${C2} ██████╗ ██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ██╗  ██╗██╗   ██╗██████╗ ${NC}"
+echo -e "${C2}██╔════╝██╔═══██╗██╔══██╗██║████╗  ██║██╔════╝     ██║  ██║██║   ██║██╔══██╗${NC}"
+echo -e "${C2}██║     ██║   ██║██║  ██║██║██╔██╗ ██║██║  ███╗    ███████║██║   ██║██████╔╝${NC}"
+echo -e "${C2}██║     ██║   ██║██║  ██║██║██║╚██╗██║██║   ██║    ██╔══██║██║   ██║██╔══██╗${NC}"
+echo -e "${C2}╚██████╗╚██████╔╝██████╔╝██║██║ ╚████║╚██████╔╝    ██║  ██║╚██████╔╝██████╔╝${NC}"
+echo -e "${C2} ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ${NC}"
+echo
+echo -e "${C3}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "                 ${BOLD}Mode By - Nobita${NC}"
+echo -e "${C1}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo
 }
 
-# ===================== EXTERNAL MENU =====================
-external_menu(){
+# ===================== PANEL MENU =====================
+panel_menu(){
 while true; do banner
-hr
-ln "🌐 EXTERNAL MENU"
-ln ""
-ln "1) External Tool 1"
-ln "2) External Tool 2"
-ln "3) External Tool 3"
-ln "4) Back"
-fr
-read -p "Select → " e
-case $e in
-1) echo "External Tool 1 placeholder"; pause ;;
-2) echo "External Tool 2 placeholder"; pause ;;
-3) echo "External Tool 3 placeholder"; pause ;;
-4) break ;;
-*) echo -e "${C4}Invalid option${NC}"; pause ;;
+echo -e "$(rand_color)──── PANEL MENU ────${NC}"
+echo " 1) FeatherPanel"
+echo " 2) Pterodactyl"
+echo " 3) Jexactyl v3"
+echo " 4) Jexpanel v4"
+echo " 5) Dashboard v3"
+echo " 6) Dashboard v4"
+echo " 7) Payment Gateway"
+echo " 8) CtrlPanel"
+echo " 9) CPanel"
+echo "10) Back"
+read -p "Select → " p
+case $p in
+1) curl -sSL https://get.featherpanel.com/beta.sh | bash ;;
+2) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/unPterodactyl.sh) ;;
+3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/panel/Jexactyl.sh) ;;
+4) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/unJexactyl.sh) ;;
+5) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/undash-3.sh) ;;
+6) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/dash-v4.sh) ;;
+7) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/unPaymenter.sh) ;;
+8) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/main/Uninstall/unCtrlPanel.sh) ;;
+9) echo "CPanel placeholder"; pause ;;
+10) break ;;
+*) echo "Invalid"; pause ;;
 esac
 done
 }
@@ -55,17 +70,14 @@ done
 # ===================== TOOLS MENU =====================
 tools_menu(){
 while true; do banner
-hr
-ln "🧰 TOOLS MENU"
-ln ""
-ln "1) Root Access"
-ln "2) Tailscale"
-ln "3) Cloudflare DNS"
-ln "4) System Info"
-ln "5) VPS Run"
-ln "6) RDP Installer"
-ln "7) Back"
-fr
+echo -e "$(rand_color)──── TOOLS MENU ────${NC}"
+echo " 1) Root Access"
+echo " 2) Tailscale"
+echo " 3) Cloudflare DNS"
+echo " 4) System Info"
+echo " 5) VPS Run"
+echo " 6) RDP Installer"
+echo " 7) Back"
 read -p "Select → " t
 case $t in
 1) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/tools/root.sh) ;;
@@ -75,31 +87,45 @@ case $t in
 5) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/main/tools/vps.sh) ;;
 6) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/tools/rdp.sh) ;;
 7) break ;;
-*) echo -e "${C4}Invalid option${NC}"; pause ;;
+*) echo "Invalid"; pause ;;
 esac
 done
 }
 
-# ===================== PANEL MENU =====================
-panel_menu(){
+# ===================== THEME MENU =====================
+theme_menu(){
 while true; do banner
-hr
-ln "🧩 PANEL MENU"
-ln ""
-ln "1) FeatherPanel"
-ln "2) Pterodactyl"
-ln "3) Jexactyl"
-ln "4) Dashboard"
-ln "5) Back"
-fr
-read -p "Select → " p
-case $p in
-1) curl -sSL https://get.featherpanel.com/beta.sh | bash ;;
-2) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/unPterodactyl.sh) ;;
-3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/panel/Jexactyl.sh) ;;
-4) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/Uninstall/undash-3.sh) ;;
-5) break ;;
-*) echo -e "${C4}Invalid option${NC}"; pause ;;
+echo -e "$(rand_color)──── THEME MENU ────${NC}"
+echo " 1) Blueprint Theme"
+echo " 2) Change Theme"
+echo " 3) Uninstall Theme"
+echo " 4) Back"
+read -p "Select → " th
+case $th in
+1) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/thame/ch.sh) ;;
+2) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/thame/chang.sh) ;;
+3) echo "Theme Uninstalled"; pause ;;
+4) break ;;
+*) echo "Invalid"; pause ;;
+esac
+done
+}
+
+# ===================== EXTERNAL MENU =====================
+external_menu(){
+while true; do banner
+echo -e "$(rand_color)──── EXTERNAL MENU ────${NC}"
+echo " 1) Docker Status"
+echo " 2) Cockpit Enable"
+echo " 3) Firewall Status"
+echo " 4) Back"
+read -p "Select → " ex
+case $ex in
+1) docker ps || echo "Docker not installed"; pause ;;
+2) sudo systemctl enable --now cockpit.socket; pause ;;
+3) sudo ufw status; pause ;;
+4) break ;;
+*) echo "Invalid"; pause ;;
 esac
 done
 }
@@ -107,27 +133,22 @@ done
 # ===================== MAIN MENU =====================
 main_menu(){
 while true; do banner
-hr
-ln "🏠 MAIN MENU"
-ln ""
-ln "1) VPS Run"
-ln "2) Panel"
-ln "3) Wings"
-ln "4) Tools"
-ln "5) System"
-ln "6) External"
-ln "7) Exit"
-fr
+echo -e "$(rand_color)──── MAIN MENU ────${NC}"
+echo " 1) VPS Run"
+echo " 2) Panel"
+echo " 3) Tools"
+echo " 4) Theme"
+echo " 5) External"
+echo " 6) Exit"
 read -p "Select → " c
 case $c in
 1) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/vm/vps.sh) ;;
 2) panel_menu ;;
-3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/wings/www.sh) ;;
-4) tools_menu ;;
-5) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/main/srv/menu/System1.sh) ;;
-6) external_menu ;;
-7) echo -e "${C3}Bye 👋 CODING HUB by Nobita${NC}"; exit ;;
-*) echo -e "${C4}Invalid option${NC}"; pause ;;
+3) tools_menu ;;
+4) theme_menu ;;
+5) external_menu ;;
+6) echo -e "${BOLD}Bye — CODING HUB${NC}"; exit ;;
+*) echo "Invalid"; pause ;;
 esac
 done
 }
