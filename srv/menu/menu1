@@ -1,6 +1,6 @@
 #!/bin/bash
 # ===========================================================
-# CODING HUB — Auto Random Theme Banner (1s Refresh)
+# CODING HUB — Auto Color Menu Panel (1s Refresh)
 # Mode By - Nobita
 # ===========================================================
 
@@ -12,26 +12,11 @@ THEMES=(RED BLUE PURPLE GOLD CYBER)
 
 apply_theme(){
 case "$1" in
-RED)
-  C_MAIN='\033[1;31m'
-  C_LINE='\033[38;5;160m'
-;;
-BLUE)
-  C_MAIN='\033[1;34m'
-  C_LINE='\033[38;5;39m'
-;;
-PURPLE)
-  C_MAIN='\033[1;35m'
-  C_LINE='\033[38;5;141m'
-;;
-GOLD)
-  C_MAIN='\033[38;5;220m'
-  C_LINE='\033[38;5;178m'
-;;
-CYBER)
-  C_MAIN='\033[38;5;51m'
-  C_LINE='\033[38;5;87m'
-;;
+RED)    C_MAIN='\033[1;31m'; C_LINE='\033[38;5;160m' ;;
+BLUE)   C_MAIN='\033[1;34m'; C_LINE='\033[38;5;39m' ;;
+PURPLE) C_MAIN='\033[1;35m'; C_LINE='\033[38;5;141m' ;;
+GOLD)   C_MAIN='\033[38;5;220m'; C_LINE='\033[38;5;178m' ;;
+CYBER)  C_MAIN='\033[38;5;51m'; C_LINE='\033[38;5;87m' ;;
 esac
 }
 
@@ -41,26 +26,70 @@ random_theme(){
 }
 
 # ===================== BANNER =====================
-banner(){
-clear
+draw_banner(){
 random_theme
-
+clear
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo
-echo -e "${C_MAIN} ██████╗ ██████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ██╗  ██╗██╗   ██╗██████╗ ${NC}"
-echo -e "${C_MAIN}██╔════╝██╔═══██╗██╔══██╗██║████╗  ██║██╔════╝     ██║  ██║██║   ██║██╔══██╗${NC}"
-echo -e "${C_MAIN}██║     ██║   ██║██║  ██║██║██╔██╗ ██║██║  ███╗    ███████║██║   ██║██████╔╝${NC}"
-echo -e "${C_MAIN}██║     ██║   ██║██║  ██║██║██║╚██╗██║██║   ██║    ██╔══██║██║   ██║██╔══██╗${NC}"
-echo -e "${C_MAIN}╚██████╗╚██████╔╝██████╔╝██║██║ ╚████║╚██████╔╝    ██║  ██║╚██████╔╝██████╔╝${NC}"
-echo -e "${C_MAIN} ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ${NC}"
+echo -e "${C_MAIN} ██████╗ ██████╗ ██████╗ ██╗███╗   ██╗ ██████╗ ${NC}"
+echo -e "${C_MAIN}██╔════╝██╔═══██╗██╔══██╗██║████╗  ██║██╔════╝ ${NC}"
+echo -e "${C_MAIN}██║     ██║   ██║██║  ██║██║██╔██╗ ██║██║  ███╗${NC}"
+echo -e "${C_MAIN}██║     ██║   ██║██║  ██║██║██║╚██╗██║██║   ██║${NC}"
+echo -e "${C_MAIN}╚██████╗╚██████╔╝██████╔╝██║██║ ╚████║╚██████╔╝${NC}"
+echo -e "${C_MAIN} ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ${NC}"
 echo
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "                 ${BOLD}${C_MAIN}Mode By - Nobita${NC}"
+echo -e "        ${BOLD}${C_MAIN}Mode By - Nobita | Auto Theme 1s${NC}"
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# ===================== LOOP =====================
+# ===================== MENU =====================
+draw_menu(){
+echo
+echo -e "${C_MAIN}1) System Info"
+echo -e "2) Disk Usage"
+echo -e "3) Network Info"
+echo -e "4) Refresh Only"
+echo -e "5) Exit${NC}"
+echo
+echo -ne "${BOLD}${C_MAIN}Select → ${NC}"
+}
+
+# ===================== MAIN LOOP =====================
 while true; do
-  banner
-  sleep 1
+  draw_banner
+  draw_menu
+
+  # wait max 1 second for input
+  read -t 1 choice
+
+  case "$choice" in
+    1)
+      clear
+      uname -a
+      read -p "Press Enter..."
+    ;;
+    2)
+      clear
+      df -h
+      read -p "Press Enter..."
+    ;;
+    3)
+      clear
+      ip a | head -n 20
+      read -p "Press Enter..."
+    ;;
+    4)
+      continue
+    ;;
+    5)
+      clear
+      echo -e "${C_MAIN}Exiting — CODING HUB${NC}"
+      exit
+    ;;
+    *)
+      # no input or invalid → auto refresh
+      continue
+    ;;
+  esac
 done
