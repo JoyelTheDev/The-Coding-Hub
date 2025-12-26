@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # ===================== COLORS =====================
 RED="\e[31m"
 C_MAIN="\e[36m"
@@ -17,7 +19,7 @@ casaos_menu() {
     echo -e "${C_LINE}────────────── CASAOS MENU ──────────────${NC}"
     echo -e "${C_MAIN} 1) Install CasaOS"
     echo -e " 2) Uninstall CasaOS"
-    echo -e " 3) Back${NC}"
+    echo -e " 3) Exit${NC}"
     echo -e "${C_LINE}────────────────────────────────────────${NC}"
     read -rp "Select → " cs
 
@@ -35,16 +37,13 @@ casaos_menu() {
         clear
         echo -e "${C_MAIN}🧹 Uninstalling CasaOS...${NC}"
 
-        # Official uninstall (if exists)
         if command -v casaos-uninstall >/dev/null 2>&1; then
           casaos-uninstall
         fi
 
-        # Stop & disable service (safe)
         systemctl stop casaos.service 2>/dev/null
         systemctl disable casaos.service 2>/dev/null
 
-        # Remove leftovers
         rm -rf \
           /casaos \
           /usr/lib/casaos \
@@ -58,7 +57,8 @@ casaos_menu() {
         pause
         ;;
       3)
-        break
+        clear
+        exit 0
         ;;
       *)
         echo -e "${RED}Invalid Option${NC}"
@@ -67,3 +67,6 @@ casaos_menu() {
     esac
   done
 }
+
+# ===================== START =====================
+casaos_menu
