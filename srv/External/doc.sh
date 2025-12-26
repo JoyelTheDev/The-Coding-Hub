@@ -2,8 +2,11 @@
 set -e
 
 # ========= COLORS =========
-R='\033[0;31m'; G='\033[0;32m'; Y='\033[1;33m'
-C='\033[0;36m'; N='\033[0m'
+R='\033[0;31m'
+G='\033[0;32m'
+Y='\033[1;33m'
+C='\033[0;36m'
+N='\033[0m'
 
 pause(){ read -p "Press Enter to continue..."; }
 
@@ -25,7 +28,7 @@ echo -e "DISK  : ${G}${AUTO_DISK} Free${N}"
 echo -e "${C}════════════════════════════════════════════${N}"
 }
 
-# ========= AUTO INSTALL =========
+# ========= AUTO INSTALL DOCKER =========
 auto_install(){
 header
 echo -e "${Y}Installing Docker...${N}"
@@ -34,32 +37,36 @@ sudo apt update
 sudo apt install -y ca-certificates curl gnupg
 
 sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+ | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
 echo \
 "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
 https://download.docker.com/linux/ubuntu \
-$(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
-sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+| sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
 
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 sudo usermod -aG docker $USER
 
-echo -e "${G}Docker installed ✔${N}"
+echo -e "${G}Docker installed successfully ✔${N}"
 echo -e "${Y}Logout/Login once recommended${N}"
 pause
 }
 
-# ========= CHECK =========
+# ========= CHECK DOCKER =========
 command -v docker >/dev/null 2>&1 || auto_install
 
-# ========= CREATE =========
+# ========= CREATE CONTAINER =========
 create_container(){
 header
 read -p "Container name: " name
-read -p "Image (e.g. ubuntu:22.04): " img
+[[ -z "$name" ]] && { echo -e "${R}Name required!${N}"; pause; return; }
+
+read -p "Image (default: ubuntu:22.04): " img
+img=${img:-ubuntu:22.04}
 
 read -p "CPU cores (Enter=auto): " cpu
 read -p "RAM MB (Enter=auto): " ram
@@ -68,31 +75,37 @@ read -p "Port map (e.g. 8080:80, blank=none): " port
 cpu=${cpu:-$AUTO_CPU}
 ram=${ram:-$AUTO_RAM}
 
+echo
+echo -e "${Y}Using Image:${N} ${G}$img${N}"
+echo -e "${Y}CPU:${N} $cpu cores | ${Y}RAM:${N} ${ram}MB"
+
 cmd="docker run -dit --name $name --cpus=$cpu --memory=${ram}m"
 
 [[ -n "$port" ]] && cmd="$cmd -p $port"
 
 cmd="$cmd $img"
 
-echo -e "${Y}Running:${N} $cmd"
-eval $cmd
+echo
+echo -e "${C}Running:${N} $cmd"
+eval "$cmd"
 
-echo -e "${G}Container created ✔${N}"
+echo -e "${G}Container '$name' created successfully ✔${N}"
 pause
 }
 
-# ========= MANAGE =========
+# ========= MANAGE CONTAINER =========
 manage_container(){
 header
 docker ps -a
 echo
 read -p "Container name: " name
+[[ -z "$name" ]] && return
 
 while true; do
 header
-status=$(docker inspect -f '{{.State.Status}}' $name 2>/dev/null || echo "not-found")
-echo -e "${Y}$name${N} | ${G}$status${N}"
-
+status=$(docker inspect -f '{{.State.Status}}' "$name" 2>/dev/null || echo "not-found")
+echo -e "${Y}$name${N} | Status: ${G}$status${N}"
+echo
 echo "1) Start"
 echo "2) Stop"
 echo "3) Restart"
@@ -103,20 +116,20 @@ echo "0) Back"
 read -p "Select: " c
 
 case $c in
-1) docker start $name ;;
-2) docker stop $name ;;
-3) docker restart $name ;;
-4) docker exec -it $name bash ;;
-5) docker logs --tail 50 $name ; pause ;;
+1) docker start "$name" ;;
+2) docker stop "$name" ;;
+3) docker restart "$name" ;;
+4) docker exec -it "$name" bash ;;
+5) docker logs --tail 50 "$name"; pause ;;
 6) read -p "Confirm delete (y/N): " x
-   [[ $x =~ ^[Yy]$ ]] && docker rm -f $name && return ;;
+   [[ $x =~ ^[Yy]$ ]] && docker rm -f "$name" && return ;;
 0) return ;;
 *) ;;
 esac
 done
 }
 
-# ========= MENU =========
+# ========= MAIN MENU =========
 while true; do
 header
 echo "1) Auto Install Docker"
@@ -129,7 +142,7 @@ read -p "Select: " m
 case $m in
 1) auto_install ;;
 2) create_container ;;
-3) docker ps -a ; pause ;;
+3) docker ps -a; pause ;;
 4) manage_container ;;
 0) exit ;;
 *) ;;
