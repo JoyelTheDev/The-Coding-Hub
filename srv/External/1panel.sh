@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # ===================== COLORS =====================
 RED="\e[31m"
 C_MAIN="\e[36m"
@@ -17,7 +19,7 @@ onepanel_menu() {
     echo -e "${C_LINE}────────────── 1PANEL MENU ──────────────${NC}"
     echo -e "${C_MAIN} 1) Install 1Panel"
     echo -e " 2) Uninstall 1Panel"
-    echo -e " 3) Back${NC}"
+    echo -e " 3) Exit${NC}"
     echo -e "${C_LINE}────────────────────────────────────────${NC}"
     read -rp "Select → " op
 
@@ -37,16 +39,15 @@ onepanel_menu() {
 
         if command -v 1pctl >/dev/null 2>&1; then
           1pctl uninstall
-          echo
           echo -e "${C_SEC}✅ 1Panel Uninstalled Successfully${NC}"
         else
           echo -e "${RED}❌ 1Panel is not installed or 1pctl not found${NC}"
         fi
-
         pause
         ;;
       3)
-        break
+        clear
+        exit 0
         ;;
       *)
         echo -e "${RED}Invalid Option${NC}"
@@ -55,3 +56,6 @@ onepanel_menu() {
     esac
   done
 }
+
+# ===================== START =====================
+onepanel_menu
