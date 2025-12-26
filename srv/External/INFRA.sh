@@ -13,7 +13,7 @@ case $im in
 1)
   clear
   echo -e "${C_MAIN}Installing KVM + Cockpit...${NC}"
-  https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/External/Cockpit.sh
+  bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/External/Cockpit.sh)
   echo -e "${C_SEC}Access: https://SERVER_IP:9090${NC}"
   pause
 ;;
