@@ -1,55 +1,41 @@
 #!/bin/bash
 # ===========================================================
-# CODING HUB Terminal Control Panel
+# CODING HUB — Auto Random Theme Banner (1s Refresh)
 # Mode By - Nobita
-# Auto Theme Engine (Every Refresh)
 # ===========================================================
 
-# ===================== BASE =====================
 NC='\033[0m'
 BOLD='\033[1m'
-GRAY='\033[38;5;245m'
 
-pause(){
-  echo -e "${GRAY}"
-  read -p "Press Enter to continue..." _
-  echo -e "${NC}"
-}
-
-# ===================== COLOR THEMES =====================
+# ===================== THEMES =====================
 THEMES=(RED BLUE PURPLE GOLD CYBER)
 
 apply_theme(){
 case "$1" in
 RED)
   C_MAIN='\033[1;31m'
-  C_SEC='\033[1;33m'
   C_LINE='\033[38;5;160m'
 ;;
 BLUE)
   C_MAIN='\033[1;34m'
-  C_SEC='\033[1;36m'
   C_LINE='\033[38;5;39m'
 ;;
 PURPLE)
   C_MAIN='\033[1;35m'
-  C_SEC='\033[38;5;213m'
   C_LINE='\033[38;5;141m'
 ;;
 GOLD)
   C_MAIN='\033[38;5;220m'
-  C_SEC='\033[38;5;208m'
   C_LINE='\033[38;5;178m'
 ;;
 CYBER)
   C_MAIN='\033[38;5;51m'
-  C_SEC='\033[38;5;45m'
   C_LINE='\033[38;5;87m'
 ;;
 esac
 }
 
-auto_theme(){
+random_theme(){
   THEME="${THEMES[$RANDOM % ${#THEMES[@]}]}"
   apply_theme "$THEME"
 }
@@ -57,7 +43,7 @@ auto_theme(){
 # ===================== BANNER =====================
 banner(){
 clear
-auto_theme
+random_theme
 
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo
@@ -69,100 +55,12 @@ echo -e "${C_MAIN}╚██████╗╚██████╔╝███�
 echo -e "${C_MAIN} ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ${NC}"
 echo
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "                 ${C_SEC}${BOLD}Mode By - Nobita${NC}"
+echo -e "                 ${BOLD}${C_MAIN}Mode By - Nobita${NC}"
 echo -e "${C_LINE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo
 }
 
-# ===================== PANEL MENU =====================
-panel_menu(){
-while true; do banner
-echo -e "${C_SEC}1) FeatherPanel"
-echo -e "2) Pterodactyl"
-echo -e "3) Jexactyl"
-echo -e "4) Dashboard"
-echo -e "5) Back${NC}"
-read -p "Select → " p
-case $p in
-1) echo "FeatherPanel"; pause ;;
-2) echo "Pterodactyl"; pause ;;
-3) echo "Jexactyl"; pause ;;
-4) echo "Dashboard"; pause ;;
-5) break ;;
-*) echo "Invalid"; pause ;;
-esac
+# ===================== LOOP =====================
+while true; do
+  banner
+  sleep 1
 done
-}
-
-# ===================== TOOLS MENU =====================
-tools_menu(){
-while true; do banner
-echo -e "${C_SEC}1) System Info"
-echo -e "2) Disk Info"
-echo -e "3) Network"
-echo -e "4) Back${NC}"
-read -p "Select → " t
-case $t in
-1) uname -a; pause ;;
-2) df -h; pause ;;
-3) ip a; pause ;;
-4) break ;;
-*) echo "Invalid"; pause ;;
-esac
-done
-}
-
-# ===================== THEME MENU =====================
-theme_menu(){
-while true; do banner
-echo -e "${C_SEC}Current theme auto rotates"
-echo -e "1) Refresh Theme"
-echo -e "2) Back${NC}"
-read -p "Select → " th
-case $th in
-1) banner; pause ;;
-2) break ;;
-*) echo "Invalid"; pause ;;
-esac
-done
-}
-
-# ===================== EXTERNAL MENU =====================
-external_menu(){
-while true; do banner
-echo -e "${C_SEC}1) Docker Status"
-echo -e "2) Firewall Status"
-echo -e "3) Back${NC}"
-read -p "Select → " ex
-case $ex in
-1) docker ps || echo "Docker not installed"; pause ;;
-2) sudo ufw status || pause ;;
-3) break ;;
-*) echo "Invalid"; pause ;;
-esac
-done
-}
-
-# ===================== MAIN MENU =====================
-main_menu(){
-while true; do banner
-echo -e "${C_SEC}1) VPS"
-echo -e "2) Panel"
-echo -e "3) Tools"
-echo -e "4) Theme"
-echo -e "5) External"
-echo -e "6) Exit${NC}"
-read -p "Select → " c
-case $c in
-1) echo "VPS Menu"; pause ;;
-2) panel_menu ;;
-3) tools_menu ;;
-4) theme_menu ;;
-5) external_menu ;;
-6) echo -e "${C_MAIN}Exiting — CODING HUB${NC}"; exit ;;
-*) echo "Invalid"; pause ;;
-esac
-done
-}
-
-main_menu
