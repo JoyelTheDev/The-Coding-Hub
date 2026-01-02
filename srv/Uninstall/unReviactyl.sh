@@ -136,8 +136,9 @@ echo "╠═══════════════════════�
 echo -e "║ ${GREEN}1) Install Panel${NC}"
 echo -e "║ ${CYAN}2) Create Panel User${NC}"
 echo -e "║ ${YELLOW}3) Update Panel${NC}"
-echo -e "║ ${RED}4) Uninstall Panel${NC}"
-echo -e "║ 5) Exit"
+echo -e "║ ${RED}4) Migrating ${NC}"
+echo -e "║ ${GREEN}5) Update Panel${NC}"
+echo -e "║ 6) Exit"
 echo "╚═══════════════════════════════════════════════╝"
 echo -ne "${CYAN}Select Option → ${NC}"
 read choice
@@ -147,7 +148,8 @@ case $choice in
     2) create_user ;;
     3) update_panel ;;
     4) uninstall_ptero ;;
-    5) clear; exit ;;
+    5) Migrating ;;
+    6) clear; exit ;;
     *) echo -e "${RED}Invalid option...${NC}"; sleep 1 ;;
 esac
 done
