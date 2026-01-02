@@ -1,80 +1,78 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# ==================================================
+# PTERODACTYL PANEL AUTO INSTALLER
+# Clean UI • One Page • Production Ready
+# ==================================================
 
-# Non-interactive apt
-export DEBIAN_FRONTEND=noninteractive
+# ---------------- UI THEME ----------------
+C_RESET="\e[0m"
+C_RED="\e[1;31m"
+C_GREEN="\e[1;32m"
+C_YELLOW="\e[1;33m"
+C_BLUE="\e[1;34m"
+C_PURPLE="\e[1;35m"
+C_CYAN="\e[1;36m"
+C_WHITE="\e[1;37m"
+C_GRAY="\e[1;90m"
 
-# Colors for UI
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-NC='\033[0m' # No Color
+line(){ echo -e "${C_GRAY}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_RESET}"; }
+step(){ echo -e "${C_BLUE}➜ $1${C_RESET}"; }
+ok(){ echo -e "${C_GREEN}✔ $1${C_RESET}"; }
+warn(){ echo -e "${C_YELLOW}⚠ $1${C_RESET}"; }
 
-# UI Elements
-BOLD='\033[1m'
-UNDERLINE='\033[4m'
-
-# Function to print header
-print_header() {
-    clear
-    echo -e "${PURPLE}"
-    echo -e "╔══════════════════════════════════════════════════════════════╗"
-    echo -e "║${WHITE}           💰 Paymenter Auto-Installer${PURPLE}                     ║"
-    echo -e "║                 ${WHITE}With Enhanced UI${PURPLE}                      ║"
-    echo -e "╚══════════════════════════════════════════════════════════════╝"
-    echo -e "${NC}"
+banner(){
+clear
+echo -e "${C_CYAN}"
+cat << "EOF"
+ ███████████                                                            █████                      
+░░███░░░░░███                                                          ░░███                       
+ ░███    ░███  ██████   █████ ████ █████████████    ██████  ████████   ███████    ██████  ████████ 
+ ░██████████  ░░░░░███ ░░███ ░███ ░░███░░███░░███  ███░░███░░███░░███ ░░░███░    ███░░███░░███░░███
+ ░███░░░░░░    ███████  ░███ ░███  ░███ ░███ ░███ ░███████  ░███ ░███   ░███    ░███████  ░███ ░░░ 
+ ░███         ███░░███  ░███ ░███  ░███ ░███ ░███ ░███░░░   ░███ ░███   ░███ ███░███░░░   ░███     
+ █████       ░░████████ ░░███████  █████░███ █████░░██████  ████ █████  ░░█████ ░░██████  █████    
+░░░░░         ░░░░░░░░   ░░░░░███ ░░░░░ ░░░ ░░░░░  ░░░░░░  ░░░░ ░░░░░    ░░░░░   ░░░░░░  ░░░░░     
+                         ███ ░███                                                                  
+                        ░░██████                                                                   
+                         ░░░░░░                                                                    
+        Payment PANEL INSTALLER
+EOF
+echo -e "${C_RESET}"
+line
+echo -e "${C_GREEN}⚡ Fast • Stable • Production Ready${C_RESET}"
+echo -e "${C_PURPLE}🧠 The Coding Hub — 2026 Installer${C_RESET}"
+line
 }
 
-# Function to print status messages
-print_status() {
-    echo -e "${BLUE}${BOLD}[~]${NC} ${1}"
-}
+# ---------------- START ----------------
+banner
+read -p "🌐 Enter domain (panel.example.com): " DOMAIN
 
-print_success() {
-    echo -e "${GREEN}${BOLD}[✓]${NC} ${1}"
-}
+# --- Dependencies ---
+apt update && apt install -y curl apt-transport-https ca-certificates gnupg unzip git tar sudo lsb-release
 
-print_error() {
-    echo -e "${RED}${BOLD}[✗]${NC} ${1}"
-}
+# Detect OS
+OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
 
-print_warning() {
-    echo -e "${YELLOW}${BOLD}[!]${NC} ${1}"
-}
+if [[ "$OS" == "ubuntu" ]]; then
+    echo "✅ Detected Ubuntu. Adding PPA for PHP..."
+    apt install -y software-properties-common
+    LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+elif [[ "$OS" == "debian" ]]; then
+    echo "✅ Detected Debian. Skipping PPA and adding PHP repo manually..."
+    # Add SURY PHP repo for Debian
+    curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /usr/share/keyrings/sury-php.gpg
+    echo "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/sury-php.list
+fi
 
-print_info() {
-    echo -e "${CYAN}${BOLD}[i]${NC} ${1}"
-}
+# Add Redis GPG key and repo
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
 
-# Function to show progress bar
-progress_bar() {
-    local duration=$1
-    local steps=20
-    local step_delay=$(echo "scale=3; $duration/$steps" | bc -l 2>/dev/null || echo "0.1")
-    
-    echo -ne "${BLUE}["
-    for ((i=0; i<steps; i++)); do
-        echo -ne "█"
-        sleep $step_delay
-    done
-    echo -e "]${NC}"
-}
+apt update
 
-# Function to animate text
-animate_text() {
-    local text=$1
-    echo -ne "${CYAN}"
-    for ((i=0; i<${#text}; i++)); do
-        echo -n "${text:$i:1}"
-        sleep 0.02
-    done
-    echo -e "${NC}"
-}
-
+# --- Install PHP + extensions ---
+apt install -y php8.3 php8.3-{cli,fpm,common,mysql,mbstring,bcmath,xml,zip,curl,gd,tokenizer,ctype,simplexml,dom} mariadb-server nginx redis-server
 # Start installation
 print_header
 
