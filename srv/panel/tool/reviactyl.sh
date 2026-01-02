@@ -196,7 +196,7 @@ ok "Queue running"
 clear
 step "Create admin user"
 # --- Admin User ---
-cd /var/www/pterodactyl
+cd /var/www/reviactyl
 sed -i '/^APP_ENVIRONMENT_ONLY=/d' .env
 echo "APP_ENVIRONMENT_ONLY=false" >> .env
 php artisan p:user:make
