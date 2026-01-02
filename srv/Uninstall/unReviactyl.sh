@@ -57,8 +57,8 @@ uninstall_panel() {
     rm -rf /var/www/reviactyl
 
     echo ">>> Dropping database..."
-    mysql -u root -e "DROP DATABASE IF EXISTS panel;"
-    mysql -u root -e "DROP USER IF EXISTS 'pterodactyl'@'127.0.0.1';"
+    mysql -u root -e "DROP DATABASE IF EXISTS reviactyl;"
+    mysql -u root -e "DROP USER IF EXISTS 'reviactyl'@'127.0.0.1';"
     mysql -u root -e "FLUSH PRIVILEGES;"
 
     echo ">>> Cleaning nginx..."
