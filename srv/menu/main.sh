@@ -72,7 +72,7 @@ case $p in
  6) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/Uninstall/dash-v4.sh) ;;
  7) bash <(curl -s https://github.com/nobita329/The-Coding-Hub/raw/refs/heads/main/srv/Uninstall/unPaymenter.sh) ;;
  8) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/Uninstall/unCtrlPanel.sh) ;;
- 9) bash <(curl -s https://raw.githubusercontent.com/yourlink/cpanel.sh) ;;
+ 9) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/Uninstall/unReviactyl.sh) ;;
  10) bash <(curl -s https://raw.githubusercontent.com/yourlink/t-panel.sh) ;;
  11) break;;
  *) echo -e "${RED}Invalid Option${NC}"; pause;;
