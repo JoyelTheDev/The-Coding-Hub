@@ -14,7 +14,7 @@ install_ptero() {
     clear
     echo -e "${CYAN}"
     echo "┌──────────────────────────────────────────────┐"
-    echo "│        🚀 Pterodactyl Installation            │"
+    echo "│        🚀 reviactyl Installation            │"
     echo "└──────────────────────────────────────────────┘${NC}"
     bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/panel/tool/reviactyl.sh)
     echo -e "${GREEN}✔ Installation Complete${NC}"
@@ -26,16 +26,16 @@ create_user() {
     clear
     echo -e "${CYAN}"
     echo "┌──────────────────────────────────────────────┐"
-    echo "│        👤 Create Pterodactyl User             │"
+    echo "│        👤 Create reviactyl User             │"
     echo "└──────────────────────────────────────────────┘${NC}"
 
-    if [ ! -d /var/www/pterodactyl ]; then
+    if [ ! -d /var/www/reviactyl ]; then
         echo -e "${RED}❌ Panel not installed!${NC}"
         read -p "Press Enter to return..."
         return
     fi
 
-    cd /var/www/pterodactyl || exit
+    cd /var/www/reviactyl || exit
     php artisan p:user:make
 
     echo -e "${GREEN}✔ User created successfully${NC}"
@@ -45,16 +45,16 @@ create_user() {
 # ================= PANEL UNINSTALL =================
 uninstall_panel() {
     echo ">>> Stopping Panel service..."
-    systemctl stop pteroq.service 2>/dev/null || true
-    systemctl disable pteroq.service 2>/dev/null || true
-    rm -f /etc/systemd/system/pteroq.service
+    systemctl stop reviq.service 2>/dev/null || true
+    systemctl disable reviq.service 2>/dev/null || true
+    rm -f /etc/systemd/system/reviq.service
     systemctl daemon-reload
 
     echo ">>> Removing cronjob..."
-    crontab -l | grep -v 'php /var/www/pterodactyl/artisan schedule:run' | crontab - || true
+    crontab -l | grep -v 'php /var/www/reviactyl/artisan schedule:run' | crontab - || true
 
     echo ">>> Removing files..."
-    rm -rf /var/www/pterodactyl
+    rm -rf /var/www/reviactyl
 
     echo ">>> Dropping database..."
     mysql -u root -e "DROP DATABASE IF EXISTS panel;"
@@ -62,8 +62,8 @@ uninstall_panel() {
     mysql -u root -e "FLUSH PRIVILEGES;"
 
     echo ">>> Cleaning nginx..."
-    rm -f /etc/nginx/sites-enabled/pterodactyl.conf
-    rm -f /etc/nginx/sites-available/pterodactyl.conf
+    rm -f /etc/nginx/sites-enabled/reviactyl.conf
+    rm -f /etc/nginx/sites-available/reviactyl.conf
     systemctl reload nginx || true
 
     echo "✅ Panel removed."
@@ -73,7 +73,7 @@ uninstall_ptero() {
     clear
     echo -e "${CYAN}"
     echo "┌──────────────────────────────────────────────┐"
-    echo "│        🧹 Pterodactyl Uninstallation          │"
+    echo "│        🧹 reviactyl Uninstallation          │"
     echo "└──────────────────────────────────────────────┘${NC}"
     uninstall_panel
     echo -e "${GREEN}✔ Panel Uninstalled (Wings untouched)${NC}"
@@ -85,36 +85,53 @@ update_panel() {
     clear
     echo -e "${YELLOW}"
     echo "═══════════════════════════════════════════════"
-    echo "        ⚡ PTERODACTYL PANEL UPDATE ⚡         "
+    echo "        ⚡ reviactyl PANEL UPDATE ⚡         "
     echo "═══════════════════════════════════════════════${NC}"
 
-    cd /var/www/pterodactyl || {
+    cd /var/www/reviactyl || {
         echo -e "${RED}❌ Panel not found!${NC}"
         read
         return
     }
 
     php artisan down
-    curl -L https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz | tar -xzv
-    chmod -R 755 storage/* bootstrap/cache
-    composer install --no-dev --optimize-autoloader
-    php artisan view:clear
-    php artisan config:clear
-    php artisan migrate --seed --force
-    chown -R www-data:www-data /var/www/pterodactyl/*
-    php artisan queue:restart
-    php artisan up
-
+    php artisan p:upgrade
     echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
     read -p "Press Enter to return..."
 }
 
+Migrating() {
+    clear
+    echo -e "${YELLOW}"
+    echo "═══════════════════════════════════════════════"
+    echo "        ⚡ Pterodactyl = Reviactyl ⚡         "
+    echo "═══════════════════════════════════════════════${NC}"
+
+      cd /var/www/pterodactyl || {
+        echo -e "${RED}❌ Panel not found!${NC}"
+        read
+        return
+    }
+
+    php artisan down
+    rm -rf *
+    cd /var/www/pterodactyl
+    curl -Lo panel.tar.gz https://github.com/reviactyl/panel/releases/latest/download/panel.tar.gz
+    tar -xzvf panel.tar.gz
+    chmod -R 755 storage/* bootstrap/cache/
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+    php artisan migrate --seed --force
+    chown -R www-data:www-data /var/www/pterodactyl/*
+    sudo systemctl restart pteroq.service
+    echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
+    read -p "Press Enter to return..."
+}
 # ===================== MENU =====================
 while true; do
 clear
 echo -e "${YELLOW}"
 echo "╔═══════════════════════════════════════════════╗"
-echo "║        🐲 PTERODACTYL CONTROL CENTER           ║"
+echo "║        🐲 reviactyl CONTROL CENTER           ║"
 echo "╠═══════════════════════════════════════════════╣"
 echo -e "║ ${GREEN}1) Install Panel${NC}"
 echo -e "║ ${CYAN}2) Create Panel User${NC}"
