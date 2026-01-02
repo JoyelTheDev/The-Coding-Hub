@@ -62,7 +62,7 @@ fi
 # ------------------------
 print_header "INSTALLING DOCKER"
 print_status "Installing Docker"
-curl -L https://get.docker.com | CHANNEL=stable bash
+bash <(curl -fsSL https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/wings/Docker.sh)
 check_success "Docker installed"
 
 print_status "Starting Docker service"
