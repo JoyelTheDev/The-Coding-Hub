@@ -122,37 +122,45 @@ server {
     listen 80;
     listen [::]:80;
     server_name ${DOMAIN};
-    return 301 https://$host$request_uri;
+    return 301 https://\$host\$request_uri;
 }
 
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
     server_name ${DOMAIN};
-    root /var/www/paymenter/public;
-    
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
 
-    index index.php;
+    root /var/www/paymenter/public;
+    index index.php index.html;
 
     charset utf-8;
 
     ssl_certificate /etc/certs/paymenter/fullchain.pem;
     ssl_certificate_key /etc/certs/paymenter/privkey.pem;
 
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
     location ~ ^/index\.php(/|$) {
         fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
     }
+
+    location ~ \.php$ {
+        return 404;
+    }
+
+    client_max_body_size 100m;
+    sendfile off;
 }
 EOF
+
 sudo ln -s /etc/nginx/sites-available/paymenter.conf /etc/nginx/sites-enabled/ || true
 sudo rm /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
