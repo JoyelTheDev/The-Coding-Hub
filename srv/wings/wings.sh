@@ -62,7 +62,7 @@ fi
 # ------------------------
 print_header "INSTALLING DOCKER"
 print_status "Installing Docker"
-curl -sSL https://get.docker.com/ | CHANNEL=stable bash > /dev/null 2>&1
+curl -L https://get.docker.com | CHANNEL=stable bash
 check_success "Docker installed"
 
 print_status "Starting Docker service"
