@@ -89,7 +89,7 @@ echo -e "${YELLOW} 2)${WHITE} Tailscale"
 echo -e "${YELLOW} 3)${WHITE} Cloudflare DNS"
 echo -e "${YELLOW} 4)${WHITE} System Info"
 echo -e "${YELLOW} 5)${WHITE} Vps Run"
-echo -e "${YELLOW} 6)${WHITE} Port Forward"
+echo -e "${YELLOW} 6)${WHITE} TERMINAL"
 echo -e "${YELLOW} 7)${WHITE} RDP Installer"
 echo -e "${YELLOW} 8)${WHITE} Back"
 echo -e "${BLUE}────────────────────────────────────────${NC}"
@@ -101,7 +101,7 @@ case $t in
  3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/cloudflare.sh) ;;
  4) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/SYSTEM.sh) ;;
  5) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/tools/vps.sh) ;;
- 6) bash <(curl -s https://raw.githubusercontent.com/yourlink/portforward.sh) ;;
+ 6) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/terminal.sh) ;;
  7) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/rdp.sh) ;;
  8) break;;
  *) echo -e "${RED}Invalid${NC}"; pause;;
