@@ -26,12 +26,13 @@ DB_PASS=${DB_PASS:-root}
 echo -e "${YELLOW}⚙️ Using DB User: ${DB_USER}${NC}"
 
 echo -e "${YELLOW}⚙️ Creating database user...${NC}"
-sudo apt update && apt -y install mariadb-server mariadb-client
-sudo apt update && sudo apt install -y mysql-server && sudo systemctl enable --now mysql mariadb
-sudo systemctl enable mysql
-sudo systemctl enable mariadb
-sudo systemctl restart mysql
-sudo systemctl restart mariadb
+if ! command -v mysql >/dev/null 2>&1; then
+  echo -e "${YELLOW}Installing MariaDB...${NC}"
+  apt update -y
+  apt install mariadb-server mariadb-client -y
+  systemctl enable mariadb
+  systemctl start mariadb
+fi
 
 # ===== MySQL (NO PASSWORD, NO PROMPT) =====
 sudo mysql <<MYSQL_SCRIPT
