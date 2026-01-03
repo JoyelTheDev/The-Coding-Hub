@@ -76,7 +76,7 @@ ttyd_run() {
         -o /usr/local/bin/ttyd && chmod +x /usr/local/bin/ttyd ;;
     esac
   }
-  read -rp "🌐 Port (default 8080): " P
+  read -rp "🌐 Port (default 8000): " P
   P=${P:-8080}
   echo -e "${Y}▶ Open: http://VPS-IP:$P${N}"
   ttyd -p "$P" bash
