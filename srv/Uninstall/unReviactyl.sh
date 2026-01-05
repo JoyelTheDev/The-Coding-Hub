@@ -81,7 +81,7 @@ uninstall_ptero() {
 }
 
 # ================= UPDATE FUNCTION =================
-update_panel() {
+reset_panel() {
     clear
     echo -e "${YELLOW}"
     echo "═══════════════════════════════════════════════"
@@ -104,7 +104,33 @@ Migrating() {
     clear
     echo -e "${YELLOW}"
     echo "═══════════════════════════════════════════════"
-    echo "        ⚡ Pterodactyl = Reviactyl ⚡         "
+    echo "        ⚡ Update = Reviactyl ⚡         "
+    echo "═══════════════════════════════════════════════${NC}"
+
+      cd /var/www/reviactyl || {
+        echo -e "${RED}❌ Panel not found!${NC}"
+        read
+        return
+    }
+
+    php artisan down
+    cd /var/www/reviactyl
+    curl -Lo panel.tar.gz https://github.com/reviactyl/panel/releases/latest/download/panel.tar.gz
+    tar -xzvf panel.tar.gz
+    chmod -R 755 storage/* bootstrap/cache/
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+    php artisan migrate --seed --force
+    chown -R www-data:www-data /var/www/reviactyl/*
+    sudo systemctl enable --now reviq.service
+    echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
+    read -p "Press Enter to return..."
+}
+
+update() {
+    clear
+    echo -e "${YELLOW}"
+    echo "═══════════════════════════════════════════════"
+    echo "        ⚡ Update = Reviactyl ⚡         "
     echo "═══════════════════════════════════════════════${NC}"
 
       cd /var/www/pterodactyl || {
@@ -135,10 +161,11 @@ echo "║        🐲 reviactyl CONTROL CENTER           ║"
 echo "╠═══════════════════════════════════════════════╣"
 echo -e "║ ${GREEN}1) Install Panel${NC}"
 echo -e "║ ${CYAN}2) Create Panel User${NC}"
-echo -e "║ ${YELLOW}3) Update Panel${NC}"
+echo -e "║ ${YELLOW}3) Reset Panel${NC}"
 echo -e "║ ${RED}4) uninstall ${NC}"
 echo -e "║ ${GREEN}5) Migrating  Panel${NC}"
-echo -e "║ 6) Exit"
+echo -e "║ ${GREEN}6) Update Panel${NC}"
+echo -e "║ 7) Exit"
 echo "╚═══════════════════════════════════════════════╝"
 echo -ne "${CYAN}Select Option → ${NC}"
 read choice
@@ -146,10 +173,10 @@ read choice
 case $choice in
     1) install_ptero ;;
     2) create_user ;;
-    3) update_panel ;;
+    3) reset_panel ;;
     4) uninstall_ptero ;;
     5) Migrating ;;
-    6) clear; exit ;;
+    7) clear; exit ;;
     *) echo -e "${RED}Invalid option...${NC}"; sleep 1 ;;
 esac
 done
