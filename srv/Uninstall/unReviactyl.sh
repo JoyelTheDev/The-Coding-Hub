@@ -122,6 +122,7 @@ Migrating() {
     php artisan migrate --seed --force
     chown -R www-data:www-data /var/www/reviactyl/*
     sudo systemctl enable --now reviq.service
+    php artisan up
     echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
     read -p "Press Enter to return..."
 }
@@ -148,6 +149,7 @@ update() {
     php artisan migrate --seed --force
     chown -R www-data:www-data /var/www/reviactyl/*
     sudo systemctl enable --now reviq.service
+    php artisan up
     echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
     read -p "Press Enter to return..."
 }
