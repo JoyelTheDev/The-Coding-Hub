@@ -133,22 +133,21 @@ update() {
     echo "        ⚡ Update = Reviactyl ⚡         "
     echo "═══════════════════════════════════════════════${NC}"
 
-      cd /var/www/pterodactyl || {
+      cd /var/www/reviactyl || {
         echo -e "${RED}❌ Panel not found!${NC}"
         read
         return
     }
 
     php artisan down
-    rm -rf *
-    cd /var/www/pterodactyl
+    cd /var/www/reviactyl
     curl -Lo panel.tar.gz https://github.com/reviactyl/panel/releases/latest/download/panel.tar.gz
     tar -xzvf panel.tar.gz
     chmod -R 755 storage/* bootstrap/cache/
     COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
     php artisan migrate --seed --force
-    chown -R www-data:www-data /var/www/pterodactyl/*
-    sudo systemctl restart pteroq.service
+    chown -R www-data:www-data /var/www/reviactyl/*
+    sudo systemctl enable --now reviq.service
     echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
     read -p "Press Enter to return..."
 }
@@ -176,6 +175,7 @@ case $choice in
     3) reset_panel ;;
     4) uninstall_ptero ;;
     5) Migrating ;;
+    6) update ;;
     7) clear; exit ;;
     *) echo -e "${RED}Invalid option...${NC}"; sleep 1 ;;
 esac
