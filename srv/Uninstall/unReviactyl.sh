@@ -96,6 +96,7 @@ reset_panel() {
 
     php artisan down
     php artisan p:upgrade
+    php artisan up
     echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
     read -p "Press Enter to return..."
 }
