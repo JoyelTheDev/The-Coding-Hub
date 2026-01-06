@@ -183,7 +183,25 @@ EOF
         ;;
 
     # =========================================================
-    # (4) RED VM — ENHANCED
+    # (4) Run VM 2 No kvm  — ENHANCED
+    # =========================================================
+    0)
+        clear
+        print_status "🌐 Starting vm 2 From GitHub Script..." "$B"
+        echo -e "${M}════════════════════════════════════════════════${N}\n"
+        
+        echo -e "${C}📡 Fetching script from GitHub...${N}"
+        apt update && apt upgrade -y
+        apt install sudo curl wget git -y
+        sudo apt install qemu-system cloud-image-utils wget lsof
+        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/dd.sh)
+        
+        echo -e "\n${M}════════════════════════════════════════════════${N}"
+        read -p "↩ Press Enter..."
+        ;;
+
+    # =========================================================
+    # (5) RED VM — ENHANCED
     # =========================================================
     4)
         clear
@@ -196,7 +214,6 @@ EOF
         echo -e "\n${M}════════════════════════════════════════════════${N}"
         read -p "↩ Press Enter..."
         ;;
-    
     # =========================================================
     # EXIT - ENHANCED
     # =========================================================
