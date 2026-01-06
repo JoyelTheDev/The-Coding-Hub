@@ -43,8 +43,8 @@ while true; do
     print_header
     
     print_option "1" "Tool" "$G"
-    print_option "2" "𝗥𝘂𝗻 𝘃𝗺 1" "$Y"
-    print_option "3" "𝗥𝘂𝗻 𝘃𝗺 2" "$B"
+    print_option "2" "𝗥𝘂𝗻 𝘃𝗺 1 Kvm" "$Y"
+    print_option "3" "𝗥𝘂𝗻 𝘃𝗺 2 No Kvm" "$B"
     print_option "4" "Exit" "$R"
 
     
