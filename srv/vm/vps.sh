@@ -149,12 +149,8 @@ EOF
         echo -e "${M}════════════════════════════════════════════════${N}\n"
         
         echo -e "${C}📡 Fetching script from GitHub...${N}"
-        export DEBIAN_FRONTEND=noninteractive; \
-        PKGS="sudo curl wget git qemu-system cloud-image-utils lsof"; \
-        MISS=""; \
-        for p in $PKGS; do dpkg -s $p >/dev/null 2>&1 || MISS="$MISS $p"; done; \
-        [ -z "$MISS" ] && echo "✔ All packages already installed" || (apt update -y && apt install -y $MISS)
 
+        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/dd.sh)
         bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/vm2.sh)
         
         echo -e "\n${M}════════════════════════════════════════════════${N}"
