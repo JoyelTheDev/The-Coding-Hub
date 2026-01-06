@@ -42,10 +42,9 @@ print_status() {
 while true; do
     print_header
     
-    print_option "1" "GitHub / VM" "$G"
-    print_option "2" "Tool" "$Y"
-    print_option "3" "Run" "$B"
-    print_option "4" "RED HED" "$R"
+    print_option "1" "Tool" "$G"
+    print_option "2" "𝗥𝘂𝗻 𝘃𝗺 1" "$Y"
+    print_option "3" "𝗥𝘂𝗻 𝘃𝗺 2" "$B"
     print_option "4" "Exit" "$R"
 
     
@@ -56,50 +55,9 @@ while true; do
     case $op in
     
     # =========================================================
-    # (1) VM Launcher - ENHANCED
+    # (1) IDX TOOL - ENHANCED
     # =========================================================
     1)
-        clear
-        print_status "🚀 Starting VM Using Docker + KVM..." "$G"
-        echo -e "${M}════════════════════════════════════════════════${N}\n"
-        
-        RAM=15000
-        CPU=4
-        DISK_SIZE=100G
-        CONTAINER_NAME=hopingboyz
-        IMAGE_NAME=hopingboyz/debain12
-        VMDATA_DIR="$PWD/vmdata"
-        
-        echo -e "${Y}📁 Creating VM data directory...${N}"
-        mkdir -p "$VMDATA_DIR"
-        
-        echo -e "\n${C}📊 VM Configuration:${N}"
-        echo -e "${W}┌──────────────────────────────────────┐${N}"
-        echo -e "${W}│ ${G}RAM${W}        : ${Y}$RAM MB${W}                     │${N}"
-        echo -e "${W}│ ${G}CPU${W}        : ${Y}$CPU cores${W}                  │${N}"
-        echo -e "${W}│ ${G}DISK SIZE${W}  : ${Y}$DISK_SIZE${W}                  │${N}"
-        echo -e "${W}│ ${G}NAME${W}       : ${Y}$CONTAINER_NAME${W}             │${N}"
-        echo -e "${W}│ ${G}IMAGE${W}      : ${Y}$IMAGE_NAME${W}                 │${N}"
-        echo -e "${W}└──────────────────────────────────────┘${N}\n"
-        
-        echo -e "${C}▶ Launching VM...${N}"
-        docker run -it --rm \
-          --name "$CONTAINER_NAME" \
-          --device /dev/kvm \
-          -v "$VMDATA_DIR":/vmdata \
-          -e RAM="$RAM" \
-          -e CPU="$CPU" \
-          -e DISK_SIZE="$DISK_SIZE" \
-          "$IMAGE_NAME"
-        
-        echo -e "\n${M}════════════════════════════════════════════════${N}"
-        read -p "↩ Press Enter to return..."
-        ;;
-    
-    # =========================================================
-    # (2) IDX TOOL - ENHANCED
-    # =========================================================
-    2)
         clear
         print_status "🔧 Running IDX Tool Setup..." "$Y"
         echo -e "${M}════════════════════════════════════════════════${N}\n"
@@ -168,9 +126,9 @@ EOF
         ;;
     
     # =========================================================
-    # (3) IDX VM — ENHANCED
+    # (2) 𝗥𝘂𝗻 𝘃𝗺𝟭 Kvm — ENHANCED
     # =========================================================
-    3)
+    2)
         clear
         print_status "🌐 Starting IDX VM From GitHub Script..." "$B"
         echo -e "${M}════════════════════════════════════════════════${N}\n"
@@ -183,9 +141,9 @@ EOF
         ;;
 
     # =========================================================
-    # (4) Run VM 2 No kvm  — ENHANCED
+    # (3) 𝗥𝘂𝗻 𝘃𝗺𝟮 No kvm  — ENHANCED
     # =========================================================
-    0)
+    3)
         clear
         print_status "🌐 Starting vm 2 From GitHub Script..." "$B"
         echo -e "${M}════════════════════════════════════════════════${N}\n"
@@ -201,24 +159,11 @@ EOF
         read -p "↩ Press Enter..."
         ;;
 
-    # =========================================================
-    # (5) RED VM — ENHANCED
-    # =========================================================
-    4)
-        clear
-        print_status "🌐 Starting RED VM From GitHub Script..." "$B"
-        echo -e "${M}════════════════════════════════════════════════${N}\n"
-        
-        echo -e "${C}📡 Fetching script from GitHub...${N}"
-        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/dd.sh)
-        
-        echo -e "\n${M}════════════════════════════════════════════════${N}"
-        read -p "↩ Press Enter..."
-        ;;
+  
     # =========================================================
     # EXIT - ENHANCED
     # =========================================================
-    5)
+    4)
         clear
         echo -e "\n${C}╔════════════════════════════════════════════════╗${N}"
         echo -e "${C}║${R}                 E X I T I N G                  ${C}║${N}"
