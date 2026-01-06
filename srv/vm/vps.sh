@@ -153,7 +153,7 @@ EOF
         apt update -y && \
         apt upgrade -y && \
         apt install -y sudo curl wget git qemu-system cloud-image-utils lsof
-        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/dd.sh)
+        bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/vm/vm2.sh)
         
         echo -e "\n${M}════════════════════════════════════════════════${N}"
         read -p "↩ Press Enter..."
