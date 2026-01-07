@@ -116,6 +116,7 @@ Migrating() {
 
     php artisan down
     cd /var/www/pterodactyl
+    rm -rf *
     curl -Lo panel.tar.gz https://github.com/reviactyl/panel/releases/latest/download/panel.tar.gz
     tar -xzvf panel.tar.gz
     chmod -R 755 storage/* bootstrap/cache/
