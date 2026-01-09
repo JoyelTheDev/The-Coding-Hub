@@ -137,7 +137,8 @@ install_browsers() {
 
     # Chromium
     apt install -y chromium chromium-l10n
-    
+    OS=$( . /etc/os-release; echo $ID ) && if echo "$OS" | grep -qiE 'ubuntu|debian|linuxmint'; then sudo apt update && sudo apt install -y xfce4 xfce4-goodies wget libgbm1 libasound2t64 pulseaudio pavucontrol xdg-utils && rm -f /tmp/discord*.deb && wget -q -O /tmp/discord.deb https://discord.com/api/download?platform=linux&format=deb && wget -q -O /tmp/discord-canary.deb https://discord.com/api/download/canary?platform=linux&format=deb && sudo dpkg -i /tmp/discord.deb /tmp/discord-canary.deb || sudo apt -f install -y ; elif echo "$OS" | grep -qiE 'ol|oracle|rhel|rocky|almalinux|centos'; then sudo dnf install -y epel-release && sudo dnf groupinstall -y "Xfce" && sudo dnf install -y wget libgbm pulseaudio pavucontrol xdg-utils && rm -f /tmp/discord*.rpm && wget -q -O /tmp/discord.rpm https://discord.com/api/download?platform=linux&format=rpm && wget -q -O /tmp/discord-canary.rpm https://discord.com/api/download/canary?platform=linux&format=rpm && sudo dnf install -y /tmp/discord.rpm /tmp/discord-canary.rpm ; fi && echo xfce4-session > ~/.xsession && sudo sed -i 's|^Exec=.*|Exec=env ELECTRON_OZONE_PLATFORM=x11 /usr/bin/discord --no-sandbox|' /usr/share/applications/discord.desktop && sudo sed -i 's|^Exec=.*|Exec=env ELECTRON_OZONE_PLATFORM=x11 /usr/bin/discord-canary --no-sandbox|' /usr/share/applications/discord-canary.desktop && sudo systemctl restart xrdp
+
     # Brave (optional)
     read -p "Install Brave Browser? (y/n): " install_brave
     if [[ $install_brave =~ ^[Yy]$ ]]; then
@@ -154,15 +155,10 @@ install_browsers() {
      sed -i 's|^Exec=.*google-chrome-stable.*|Exec=/usr/bin/google-chrome-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/google-chrome.desktop
      sed -i 's|^Exec=.*brave-browser.*|Exec=/usr/bin/brave-browser-stable --no-sandbox --disable-dev-shm-usage|g' /usr/share/applications/brave-browser.desktop
      sed -i 's|^Exec=.*chromium.*|Exec=/usr/bin/chromium --no-sandbox --disable-dev-shm-usage|g' ~/Desktop/chromium*.desktop 2>/dev/null
-     mkdir -p ~/Desktop
-# Google Chrome
-     cp /usr/share/applications/google-chrome.desktop ~/Desktop/ 2>/dev/null
-# Firefox
-     cp /usr/share/applications/firefox*.desktop ~/Desktop/ 2>/dev/null
-# Chromium (Ubuntu 22 me naam different ho sakta hai)
-     cp /usr/share/applications/chromium*.desktop ~/Desktop/ 2>/dev/null
-# Brave
-     cp /usr/share/applications/brave-browser*.desktop ~/Desktop/ 2>/dev/null
+     sudo sed -i 's|^Exec=.*|Exec=env ELECTRON_OZONE_PLATFORM=x11 XDG_SESSION_TYPE=x11 /usr/bin/discord-canary --no-sandbox|' /usr/share/applications/discord-canary.desktop
+     sudo sed -i 's|^Exec=.*|Exec=env ELECTRON_OZONE_PLATFORM=x11 /usr/bin/discord --no-sandbox|' /usr/share/applications/discord.desktop && sudo sed -i 's|^Exec=.*|Exec=env ELECTRON_OZONE_PLATFORM=x11 /usr/bin/discord-canary --no-sandbox|' /usr/share/applications/discord-canary.desktop
+     mkdir -p ~/Desktop && for f in discord.desktop discord-canary.desktop microsoft-edge.desktop microsoft-edge-stable.desktop brave-browser.desktop chromium.desktop chromium-browser.desktop firefox.desktop google-chrome.desktop google-chrome-stable.desktop; do [ -f /usr/share/applications/$f ] && cp /usr/share/applications/$f ~/Desktop/; done && chmod +x ~/Desktop/*.desktop && for d in ~/Desktop/*.desktop; do gio set "$d" metadata::trusted true; done && xfdesktop --reload
+
 # Sabko executable banao
     chmod +x ~/Desktop/*.desktop
     echo -e "${G}✅ Browsers installed${N}"
