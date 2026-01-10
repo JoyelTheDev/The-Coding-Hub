@@ -19,7 +19,7 @@ display_header() {
 ░░░░░   ░░░░░   ░░░░░░░░ ░░░░ ░░░░░         ░░░      ░░░░░ ░░░ ░░░░░    ░░░░░ 
                                                                  
                                                                            
-              Mode by - Nobita                                                                                                                                                   
+                                                                                                                                                                 
 EOF
     echo
 }
