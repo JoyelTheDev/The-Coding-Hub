@@ -5,7 +5,7 @@ echo "=== Proxmox VE Auto Install (Debian 12) ==="
 
 # 1. Basic tools
 echo "[1/7] Installing required tools..."
-apt update
+apt update && apt upgrade -y
 apt install -y gnupg ca-certificates wget curl lsb-release
 
 # 2. Set hostname (if empty)
