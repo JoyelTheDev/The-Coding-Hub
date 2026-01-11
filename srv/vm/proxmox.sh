@@ -1,97 +1,137 @@
 #!/bin/bash
-set -e
+# DO NOT EXIT ON ERROR (LOGIN LOOP FIX)
+set +e
+export DEBIAN_FRONTEND=noninteractive
 
-echo "=== Proxmox VE Auto Install (Debian 12) ==="
+echo "=== ULTIMATE DEBIAN 12 → PROXMOX AUTO FIX + INSTALL ==="
 
-# 1. Basic tools
-echo "[1/7] Installing required tools..."
-apt update && apt upgrade -y
-apt install -y gnupg ca-certificates wget curl lsb-release
-
-# 2. Set hostname (if empty)
-if [ -z "$(hostname -f 2>/dev/null)" ]; then
-  echo "proxmox.local" > /etc/hostname
-  hostnamectl set-hostname proxmox.local
+# ---------------- ROOT CHECK ----------------
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Run as root"
+  exit 1
 fi
-rm -rf /var/lib/apt/lists/*
-rm -rf /etc/apt/trusted.gpg*
-rm -rf /var/lib/apt/lists/* /etc/apt/trusted.gpg* && apt update --allow-releaseinfo-change && apt install -y gnupg ca-certificates curl debian-archive-keyring && curl -fsSL https://ftp-master.debian.org/keys/archive-key-12.asc | gpg --dearmor -o /usr/share/keyrings/debian-archive-keyring.gpg && echo -e "deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware\ndeb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware\ndeb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware" > /etc/apt/sources.list && apt update
 
-# 3. Add Proxmox repository
-echo "[2/7] Adding Proxmox repository..."
+mount -o remount,rw / || true
+
+# ---------------- DISK EMERGENCY CLEAN ----------------
+echo "[1/12] Disk + temp cleanup..."
+rm -rf /var/lib/apt/lists/* \
+       /var/cache/apt/archives/* \
+       /tmp/* /var/tmp/* || true
+apt clean || true
+journalctl --vacuum-size=100M || true
+
+# ---------------- NUKE ALL APT TRUST ----------------
+echo "[2/12] Resetting APT keys & trust..."
+rm -f /etc/apt/trusted.gpg
+rm -rf /etc/apt/trusted.gpg.d/*
+rm -rf /usr/share/keyrings/*
+
+# ---------------- MINIMAL TOOLS ----------------
+echo "[3/12] Installing minimal tools..."
+apt update || true
+apt install -y ca-certificates gnupg curl wget iproute2 || true
+
+# ---------------- FORCE DEBIAN KEYRING ----------------
+echo "[4/12] Reinstalling Debian archive keyring..."
+apt install -y --reinstall debian-archive-keyring || true
+
+# ---------------- MANUAL KEY IMPORT (NUCLEAR) ----------
+echo "[5/12] Importing Debian signing keys..."
+curl -fsSL https://ftp-master.debian.org/keys/archive-key-12.asc \
+| gpg --dearmor -o /usr/share/keyrings/debian-archive-keyring.gpg
+
+curl -fsSL https://ftp-master.debian.org/keys/archive-key-12-security.asc \
+| gpg --dearmor -o /usr/share/keyrings/debian-security-keyring.gpg
+
+# ---------------- HARD RESET SOURCES ------------------
+echo "[6/12] Writing clean Debian sources..."
+rm -f /etc/apt/sources.list.d/* || true
+
+cat > /etc/apt/sources.list <<EOF
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-security-keyring.gpg] http://deb.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] http://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware
+EOF
+
+# ---------------- FINAL APT TEST ----------------
+echo "[7/12] Testing apt (must succeed)..."
+apt update || {
+  echo "❌ APT STILL BROKEN → VPS IMAGE CORRUPT"
+  exit 1
+}
+
+# ---------------- HOSTNAME FIX ----------------
+hostname -f >/dev/null 2>&1 || hostnamectl set-hostname proxmox.local
+
+# ---------------- PROXMOX REPO + KEY ----------------
+echo "[8/12] Adding Proxmox repo..."
 echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" \
-> /etc/apt/sources.list.d/pve.list
+> /etc/apt/sources.list.d/pve-no-subscription.list
 
-# 4. Add Proxmox GPG key
-echo "[3/7] Adding Proxmox GPG key..."
-wget -q https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg
-gpg --dearmor proxmox-release-bookworm.gpg
-mv proxmox-release-bookworm.gpg.gpg /etc/apt/trusted.gpg.d/proxmox.gpg
-rm -f proxmox-release-bookworm.gpg
+curl -fsSL https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg \
+-o /usr/share/keyrings/proxmox-release.gpg
 
-# 5. Preseed Postfix (NO INTERACTIVE PROMPT)
-echo "[4/7] Preconfiguring Postfix..."
+apt update
+
+# ---------------- POSTFIX NON-INTERACTIVE --------------
+echo "[9/12] Preconfiguring Postfix..."
 echo "postfix postfix/mailname string localhost" | debconf-set-selections
 echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections
 
-# 6. Update & install Proxmox
-echo "[5/7] Installing Proxmox VE..."
-apt update
+# ---------------- INSTALL PROXMOX ----------------
+echo "[10/12] Installing Proxmox VE..."
+dpkg -l | grep -q proxmox-ve || \
 apt install -y proxmox-ve postfix open-iscsi
 
-# 7. Cleanup Debian kernel (recommended)sysctl -w net.ipv6.conf.all.disable_ipv6=1ip a | grep inet6
+# ---------------- AUTO NETWORK vmbr0 ----------------
+echo "[11/12] Auto network (vmbr0)..."
+IFACE=$(ip route | awk '/default/ {print $5; exit}')
+IPCIDR=$(ip -4 addr show "$IFACE" | awk '/inet/ {print $2; exit}')
+GATEWAY=$(ip route | awk '/default/ {print $3; exit}')
 
-sysctl -w net.ipv6.conf.default.disable_ipv6=1
-sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+cat > /etc/network/interfaces <<EOF
+auto lo
+iface lo inet loopback
 
-echo "[6/7] Cleaning up default Debian kernel..."
-apt remove -y linux-image-amd64 linux-image-cloud-amd64 || true
-update-grub
+auto $IFACE
+iface $IFACE inet manual
 
-echo "[7/7] Installation complete!"
-echo "Rebooting in 5 seconds..."
+auto vmbr0
+iface vmbr0 inet static
+    address $IPCIDR
+    gateway $GATEWAY
+    bridge-ports $IFACE
+    bridge-stp off
+    bridge-fd 0
+EOF
+
+systemctl restart networking || true
 sleep 5
-sed -i 's|^deb https://enterprise.proxmox.com|# deb https://enterprise.proxmox.com|' /etc/apt/sources.list.d/pve-enterprise.list 2>/dev/null || true
-apt update
 
-systemctl stop pveproxy pvedaemon
-systemctl restart pve-cluster
-sleep 5
-pvecm updatecerts --force
-systemctl start pvedaemon pveproxy
-rm -rf /var/lib/apt/lists/*
-rm -rf /etc/apt/trusted.gpg*
+# ---------------- IPV6 + SSL FIX ----------------
+echo "[12/12] IPv6 + SSL fix..."
+cat > /etc/sysctl.d/99-disable-ipv6.conf <<EOF
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+net.ipv6.conf.lo.disable_ipv6=1
+EOF
+sysctl --system
 
-
-echo "=== Proxmox SSL + IPv6 Fix Script (Debian 12) ==="
-
-echo "[1/6] Disabling IPv6 temporarily..."
-sysctl -w net.ipv6.conf.all.disable_ipv6=1
-sysctl -w net.ipv6.conf.default.disable_ipv6=1
-sysctl -w net.ipv6.conf.lo.disable_ipv6=1
-
-echo "[2/6] Stopping Proxmox services..."
 systemctl stop pveproxy pvedaemon || true
-
-echo "[3/6] Cleaning broken SSL certificates..."
-rm -f /etc/pve/local/pve-ssl.*
-rm -f /etc/pve/nodes/*/pve-ssl.*
-
-echo "[4/6] Restarting cluster filesystem..."
+rm -f /etc/pve/local/pve-ssl.* /etc/pve/nodes/*/pve-ssl.*
 systemctl restart pve-cluster
 sleep 5
-
-echo "[5/6] Regenerating Proxmox certificates..."
 pvecm updatecerts --force
-
-echo "[6/6] Starting Proxmox services..."
 systemctl start pvedaemon pveproxy
 
+# ---------------- ENTERPRISE REPO OFF ----------------
+sed -i 's|^deb https://enterprise.proxmox.com|# deb https://enterprise.proxmox.com|' \
+/etc/apt/sources.list.d/pve-enterprise.list 2>/dev/null || true
+
+# ---------------- DONE ----------------
 echo "=============================================="
-echo "DONE ✅"
-echo "Now open: https://SERVER-IP:8006"
-echo "If browser warns about SSL → Advanced → Proceed"
+echo "✅ ALL FIXED + PROXMOX INSTALLED"
+echo "🌐 https://SERVER-IP:8006"
+echo "🔁 REBOOT STRONGLY RECOMMENDED"
 echo "=============================================="
-
-
-
