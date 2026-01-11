@@ -50,18 +50,43 @@ echo "Rebooting in 5 seconds..."
 sleep 5
 sed -i 's|^deb https://enterprise.proxmox.com|# deb https://enterprise.proxmox.com|' /etc/apt/sources.list.d/pve-enterprise.list 2>/dev/null || true
 apt update
+
 systemctl stop pveproxy pvedaemon
 systemctl restart pve-cluster
 sleep 5
 pvecm updatecerts --force
 systemctl start pvedaemon pveproxy
-ip a | grep inet6
+
+
+echo "=== Proxmox SSL + IPv6 Fix Script (Debian 12) ==="
+
+echo "[1/6] Disabling IPv6 temporarily..."
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+
+echo "[2/6] Stopping Proxmox services..."
+systemctl stop pveproxy pvedaemon || true
+
+echo "[3/6] Cleaning broken SSL certificates..."
 rm -f /etc/pve/local/pve-ssl.*
 rm -f /etc/pve/nodes/*/pve-ssl.*
+
+echo "[4/6] Restarting cluster filesystem..."
 systemctl restart pve-cluster
 sleep 5
+
+echo "[5/6] Regenerating Proxmox certificates..."
 pvecm updatecerts --force
-systemctl restart pvedaemon pveproxy
+
+echo "[6/6] Starting Proxmox services..."
+systemctl start pvedaemon pveproxy
+
+echo "=============================================="
+echo "DONE ✅"
+echo "Now open: https://SERVER-IP:8006"
+echo "If browser warns about SSL → Advanced → Proceed"
+echo "=============================================="
 
 reboot
 
