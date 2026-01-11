@@ -93,5 +93,5 @@ echo "Now open: https://SERVER-IP:8006"
 echo "If browser warns about SSL → Advanced → Proceed"
 echo "=============================================="
 
-reboot
+
 
