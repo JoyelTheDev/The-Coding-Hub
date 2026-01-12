@@ -2,11 +2,11 @@
 
 clear
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔰 MythicalDash Script"
+echo "🔰 MythicalDash v3"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "1️⃣  Install (nothing happens)"
-echo "2️⃣  Uninstall (full cleanup)"
+echo "1️⃣  Install"
+echo "2️⃣  Uninstall"
 echo ""
 read -p "👉 Choose option [1-2]: " ACTION
 
