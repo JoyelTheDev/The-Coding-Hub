@@ -28,6 +28,7 @@ menu() {
   echo -e "${C}Choose your destiny:${N}\n"
   echo -e "${G}1) 🚀 BLUEPRINT 1"
   echo -e "${Y}2) ⚡ BLUEPRINT 2"
+  echo -e "${Y}3) ❓ Auto fix"
   echo -e "${R}0) ❌ Exit${N}\n"
   read -rp "👉 Select option: " opt
 }
@@ -53,6 +54,7 @@ while true; do
   case $opt in
     1) blueprint1 ;;
     2) blueprint2 ;;
+    3) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/thame/fix.sh) ;;
     0) echo -e "${M}👋 Exit. Panel shant ho gaya.${N}"; exit ;;
     *) echo -e "${R}❌ Galat choice. Phir se try kar.${N}"; sleep 1 ;;
   esac
