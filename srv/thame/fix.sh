@@ -36,6 +36,19 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # ================= VARIABLES =================
+cd /var/www/pterodactyl
+php artisan down
+curl -L https://github.com/pterodactyl/panel/releases/download/v1.11.11/panel.tar.gz | tar -xzv
+chmod -R 755 storage/* bootstrap/cache
+composer install --no-dev --optimize-autoloader
+php artisan view:clear
+php artisan config:clear
+php artisan migrate --seed --force
+chown -R www-data:www-data /var/www/pterodactyl/*
+php artisan queue:restart
+php artisan up
+
+echo -e "${GREEN}🎉 Panel Updated Successfully${NC}"
 export PTERODACTYL_DIRECTORY=/var/www/pterodactyl
 
 # ================= START =================
