@@ -159,7 +159,7 @@ php app migrate
 # ==============================
 # FRONTEND
 # ==============================
-cd /var/www/featherpanel/frontend
+cd /var/www/featherpanel/frontendv2
 pnpm build
 
 # ==============================
