@@ -131,7 +131,7 @@ cd /var/www/featherpanel
 # BACKEND
 # ==============================
 COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir=/var/www/featherpanel/backend
-pnpm install --dir /var/www/featherpanel/frontend/
+pnpm install --dir /var/www/featherpanel/frontendv2/
 # ==============================
 # DATABASE
 # ==============================
