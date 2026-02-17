@@ -92,7 +92,10 @@ echo -e "${YELLOW} 4)${WHITE} System Info"
 echo -e "${YELLOW} 5)${WHITE} Vps Run"
 echo -e "${YELLOW} 6)${WHITE} TERMINAL"
 echo -e "${YELLOW} 7)${WHITE} RDP Installer"
-echo -e "${YELLOW} 8)${WHITE} Back"
+echo -e "${YELLOW} 8)${WHITE} Security Hardening"
+echo -e "${YELLOW} 9)${WHITE} Backup Manager"
+echo -e "${YELLOW} 10)${WHITE} Auto SSL"
+echo -e "${YELLOW} 12)${WHITE} Back"
 echo -e "${BLUE}────────────────────────────────────────${NC}"
 read -p "Select → " t
 
@@ -104,7 +107,10 @@ case $t in
  5) bash <(curl -s https://raw.githubusercontent.com/nobita54/-150/refs/heads/main/tools/vps.sh) ;;
  6) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/terminal.sh) ;;
  7) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/rdp.sh) ;;
- 8) break;;
+ 8) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/security_hardening.sh) ;;
+ 9) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/backup_manager.sh) ;;
+10) bash <(curl -s https://raw.githubusercontent.com/nobita329/The-Coding-Hub/refs/heads/main/srv/tools/ssl_auto.sh) ;;
+11) break;;
  *) echo -e "${RED}Invalid${NC}"; pause;;
 esac
 done
